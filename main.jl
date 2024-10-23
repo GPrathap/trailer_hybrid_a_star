@@ -8,11 +8,13 @@ using PyPlot
 
 include("./lib/trailer_hybrid_a_star.jl")
 
+using Base
+
 function main()
     println(PROGRAM_FILE," start!!")
 
     # initial state
-    sx = 14.0  # [m]
+    sx = 24.0  # [m]
     sy = 10.0  # [m]
     syaw0 = deg2rad(00.0)
     syaw1 = deg2rad(00.0)
@@ -58,8 +60,7 @@ function main()
     # path generation
     @time paths = trailer_hybrid_a_star.calc_hybrid_astar_path(sx, sy, syaw0, syaw1, gx, gy, gyaw0, gyaw1, ox, oy,
                                                                trailer_hybrid_a_star.XY_GRID_RESOLUTION,
-                                                               trailer_hybrid_a_star.YAW_GRID_RESOLUTION,
-                                                               trailer_hybrid_a_star.N_PATHS_NEEDED)
+                                                               trailer_hybrid_a_star.YAW_GRID_RESOLUTION)
 
     # ====Animation=====
     show_animation(paths, oox, ooy, sx, sy, syaw0, syaw1, gx, gy, gyaw0, gyaw1)
@@ -72,12 +73,12 @@ function show_animation(paths, oox, ooy, sx, sy, syaw0, syaw1, gx, gy, gyaw0, gy
     plot(oox, ooy, ".k")
     trailer_hybrid_a_star.trailerlib.plot_trailer(sx, sy, syaw0, syaw1, 0.0)
     trailer_hybrid_a_star.trailerlib.plot_trailer(gx, gy, gyaw0, gyaw1, 0.0)
-    for i in 1:length(paths)
-        x = paths[i].x
-        y = paths[i].y
-        yaw = paths[i].yaw
-        yaw1 = paths[i].yaw1
-        direction = paths[i].direction
+    # for i in 1:length(paths)
+        x = paths.x
+        y = paths.y
+        yaw = paths.yaw
+        yaw1 = paths.yaw1
+        direction = paths.direction
 
         steer = 0.0
         for ii in 1:length(x)
@@ -90,7 +91,7 @@ function show_animation(paths, oox, ooy, sx, sy, syaw0, syaw1, gx, gy, gyaw0, gy
                 if !direction[ii]
                     k *= -1
                 end
-                steer = atan2(trailer_hybrid_a_star.WB*k, 1.0)
+                steer = Base.atan(trailer_hybrid_a_star.WB*k, 1.0)
             else
                 steer = 0.0
             end
@@ -99,7 +100,7 @@ function show_animation(paths, oox, ooy, sx, sy, syaw0, syaw1, gx, gy, gyaw0, gy
             axis("equal")
             pause(0.0001)
         end
-    end
+    # end
 end
 
 

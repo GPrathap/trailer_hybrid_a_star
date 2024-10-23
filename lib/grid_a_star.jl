@@ -11,11 +11,11 @@ using NearestNeighbors
 using DataStructures 
 
 
-type Node
-    x::Int64 #x index
-    y::Int64 #y index
-    cost::Float64 # cost
-    pind::Int64 # parent index
+mutable struct Node
+    x::Int64       # x index
+    y::Int64       # y index
+    cost::Float64  # cost
+    pind::Int64    # parent index
 end
 
 
@@ -348,8 +348,8 @@ function main()
         push!(oy, 60.0-Float64(i))
     end
 
-    const VEHICLE_RADIUS = 5.0 #[m]
-    const GRID_RESOLUTION = 1.0 #[m]
+    VEHICLE_RADIUS = 5.0 #[m]
+    GRID_RESOLUTION = 1.0 #[m]
 
     @time rx, ry = calc_astar_path(sx, sy, gx, gy, ox, oy, GRID_RESOLUTION, VEHICLE_RADIUS)
 
