@@ -4,7 +4,7 @@
 # compile CXX with /usr/bin/c++
 CXX_DEFINES = 
 
-CXX_INCLUDES = -isystem /home/op/tmp/HybridAStarTrailer/lib_cpp_hybrid_a_star/include -isystem /usr/include/eigen3
+CXX_INCLUDES = -isystem /home/op/tmp/HybridAStarTrailer/lib_cpp_hybrid_a_star/include -isystem /home/op/tmp/HybridAStarTrailer/lib_cpp_hybrid_a_star/build/_deps/matplotlib-src -isystem /usr/include/eigen3
 
 CXX_FLAGS = -std=c++17 -DBOOST_MATH_DISABLE_FLOAT128 -O1 -Wall -g --debug -g
 

@@ -12,7 +12,8 @@
 #include <chrono>
 #include <thread>
 #include <iostream>
-
+#include <cstdlib> 
+#include <execution>
 #include "math_utility.hpp"
 
 namespace rs_paths
@@ -25,13 +26,18 @@ namespace rs_paths
         std::vector<double> lengths;
         std::vector<std::string> ctypes;
         double L{0.0};
-        // std::vector<double> x;
-        // std::vector<double> y;
-        // std::vector<double> yaw;
-        // std::vector<int> directions;
         Eigen::MatrixXd poses;
         // Path() : lengths{} {}
     } Path;
+
+    template <typename T>
+    void printVector(const std::vector<T>& vec) {
+        std::cout << "[ ";
+        for (const auto& elem : vec) {
+            std::cout << elem << " ";
+        }
+        std::cout << "]" << std::endl;
+    }
 
 
     class RSPaths{
@@ -56,14 +62,15 @@ namespace rs_paths
             void CCSCC(const Eigen::Vector3d& p, std::vector<Path>& paths);
             void CCC(const Eigen::Vector3d& p, std::vector<Path>& paths);
             void CSC(const Eigen::Vector3d& p, std::vector<Path>& paths);
-            void generate_path(Eigen::Vector4d q0, Eigen::Vector4d q1, double maxc, std::vector<Path>& paths);
+            void generate_path(Eigen::Vector3d q0, Eigen::Vector3d q1, double maxc, std::vector<Path>& paths);
             void generate_local_course(double L, std::vector<double> lengths
                             , std::vector<std::string> mode, double maxc, double step_size, Eigen::MatrixXd& poses);
-            void calc_paths(Eigen::Vector4d s, Eigen::Vector4d g, double maxc,  std::vector<Path>& paths, double step_size=STEP_SIZE);
-            Path calc_shortest_path(Eigen::Vector4d s, Eigen::Vector4d g, double maxc, double step_size=STEP_SIZE);
-            double calc_shortest_path_length(Eigen::Vector4d s, Eigen::Vector4d g, double maxc, double step_size=STEP_SIZE);
+            void calc_paths(Eigen::Vector3d s, Eigen::Vector3d g, double maxc,  std::vector<Path>& paths, double step_size=STEP_SIZE);
+            Path calc_shortest_path(Eigen::Vector3d s, Eigen::Vector3d g, double maxc, double step_size=STEP_SIZE);
+            double calc_shortest_path_length(Eigen::Vector3d s, Eigen::Vector3d g, double maxc, double step_size=STEP_SIZE);
             void calc_curvature(Eigen::MatrixXd& poses, std::vector<double>& c, std::vector<double>& ds);
-            void check_path(Eigen::Vector4d s, Eigen::Vector4d g, double max_curvature);
+            void check_path(Eigen::Vector3d s, Eigen::Vector3d g, double max_curvature);
+            void test();
     };   
 }
 
