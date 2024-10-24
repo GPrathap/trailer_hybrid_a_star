@@ -232,11 +232,18 @@ FETCHCONTENT_QUIET:BOOL=ON
 // for matplotlib
 FETCHCONTENT_SOURCE_DIR_MATPLOTLIB:PATH=
 
+//When not empty, overrides where to find pre-populated content
+// for nanoflann
+FETCHCONTENT_SOURCE_DIR_NANOFLANN:PATH=
+
 //Enables UPDATE_DISCONNECTED behavior for all content population
 FETCHCONTENT_UPDATES_DISCONNECTED:BOOL=OFF
 
 //Enables UPDATE_DISCONNECTED behavior just for population of matplotlib
 FETCHCONTENT_UPDATES_DISCONNECTED_MATPLOTLIB:BOOL=OFF
+
+//Enables UPDATE_DISCONNECTED behavior just for population of nanoflann
+FETCHCONTENT_UPDATES_DISCONNECTED_NANOFLANN:BOOL=OFF
 
 //Git command line client
 GIT_EXECUTABLE:FILEPATH=/usr/bin/git
@@ -258,6 +265,9 @@ lib_cpp_hybrid_a_star_IS_TOP_LEVEL:STATIC=ON
 
 //Value Computed by CMake
 lib_cpp_hybrid_a_star_SOURCE_DIR:STATIC=/home/op/tmp/HybridAStarTrailer/lib_cpp_hybrid_a_star
+
+//The directory containing a CMake configuration file for nanoflann.
+nanoflann_DIR:PATH=nanoflann_DIR-NOTFOUND
 
 
 ########################

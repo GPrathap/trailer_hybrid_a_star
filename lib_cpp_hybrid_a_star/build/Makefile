@@ -142,6 +142,30 @@ hybrid_a_star/fast:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/hybrid_a_star.dir/build.make CMakeFiles/hybrid_a_star.dir/build
 .PHONY : hybrid_a_star/fast
 
+src/grid_a_star.o: src/grid_a_star.cpp.o
+.PHONY : src/grid_a_star.o
+
+# target to build an object file
+src/grid_a_star.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/lib_cpp_hybrid_a_star.dir/build.make CMakeFiles/lib_cpp_hybrid_a_star.dir/src/grid_a_star.cpp.o
+.PHONY : src/grid_a_star.cpp.o
+
+src/grid_a_star.i: src/grid_a_star.cpp.i
+.PHONY : src/grid_a_star.i
+
+# target to preprocess a source file
+src/grid_a_star.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/lib_cpp_hybrid_a_star.dir/build.make CMakeFiles/lib_cpp_hybrid_a_star.dir/src/grid_a_star.cpp.i
+.PHONY : src/grid_a_star.cpp.i
+
+src/grid_a_star.s: src/grid_a_star.cpp.s
+.PHONY : src/grid_a_star.s
+
+# target to generate assembly for a file
+src/grid_a_star.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/lib_cpp_hybrid_a_star.dir/build.make CMakeFiles/lib_cpp_hybrid_a_star.dir/src/grid_a_star.cpp.s
+.PHONY : src/grid_a_star.cpp.s
+
 src/main.o: src/main.cpp.o
 .PHONY : src/main.o
 
@@ -200,6 +224,9 @@ help:
 	@echo "... rebuild_cache"
 	@echo "... hybrid_a_star"
 	@echo "... lib_cpp_hybrid_a_star"
+	@echo "... src/grid_a_star.o"
+	@echo "... src/grid_a_star.i"
+	@echo "... src/grid_a_star.s"
 	@echo "... src/main.o"
 	@echo "... src/main.i"
 	@echo "... src/main.s"

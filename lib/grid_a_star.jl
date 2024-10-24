@@ -31,7 +31,7 @@ function calc_dist_policy(gx::Float64, gy::Float64,
     vr: vehicle radius[m]
     """
 
-    ngoal = Node(round(Int64, gx/reso),round(Int64, gy/reso),0.0, -1)
+    ngoal = Node(round(Int64, gx/reso), round(Int64, gy/reso),0.0, -1)
 
     ox = [iox/reso for iox in ox]
     oy = [ioy/reso for ioy in oy]

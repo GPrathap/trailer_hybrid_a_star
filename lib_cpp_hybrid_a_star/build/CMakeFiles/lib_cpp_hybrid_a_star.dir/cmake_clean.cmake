@@ -1,4 +1,6 @@
 file(REMOVE_RECURSE
+  "CMakeFiles/lib_cpp_hybrid_a_star.dir/src/grid_a_star.cpp.o"
+  "CMakeFiles/lib_cpp_hybrid_a_star.dir/src/grid_a_star.cpp.o.d"
   "CMakeFiles/lib_cpp_hybrid_a_star.dir/src/rs_paths.cpp.o"
   "CMakeFiles/lib_cpp_hybrid_a_star.dir/src/rs_paths.cpp.o.d"
   "liblib_cpp_hybrid_a_star.a"
