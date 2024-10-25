@@ -21,14 +21,6 @@
 namespace grid_search
 {
     using namespace math_utility;
-    template <typename T>
-    void printVector(const std::vector<T>& vec) {
-        std::cout << "[ ";
-        for (const auto& elem : vec) {
-            std::cout << elem << " ";
-        }
-        std::cout << "]" << std::endl;
-    }
 
     typedef struct Node
     {
@@ -36,7 +28,7 @@ namespace grid_search
         double cost;
         int pind;
         
-        Node(Eigen::Vector2i position, double cost_, int id){
+        Node(const Eigen::Vector2i position, double cost_, int id){
             pose = position;
             cost = cost_;
             pind = id;
@@ -44,8 +36,18 @@ namespace grid_search
 
     };
 
+    typedef struct CostNode
+    {
+        double cost;
+        int id;
+        CostNode(double cost_, int index){
+            cost = cost_;
+            id =  index;
+        }
+    };
+
     struct CompareNode {
-        bool operator()(const Node& a, const Node& b) {
+        bool operator()(const CostNode& a, const CostNode& b) {
             return a.cost > b.cost;
         }
     };
@@ -63,7 +65,8 @@ namespace grid_search
         template <class BBOX> bool kdtree_get_bbox(BBOX& /*bb*/) const { return false; }
     };
 
-    using KDTree = nanoflann::KDTreeSingleIndexAdaptor<nanoflann::L2_Simple_Adaptor<double, PointCloud>, PointCloud, 2>;
+    using KDTree = nanoflann::KDTreeSingleIndexAdaptor<nanoflann::L2_Simple_Adaptor<double
+                                                                            , PointCloud>, PointCloud, 2>;
 
 
     class GridAStar{
@@ -72,18 +75,29 @@ namespace grid_search
 
             void calc_obstacle_map(Eigen::MatrixXd& obses, double& reso, double& vr);
             void calc_dist_policy(Eigen::Vector2d s, Eigen::Vector2d g
-                            , Eigen::MatrixXd obses, double reso, double vr);
-            int calc_index(Node node);
+                            , Eigen::MatrixXd obses, double reso, double vr
+                            , Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic>& pmap);
+            int calc_index(const Node& node);
             double h(int x, int y);
-            double calc_cost(Node n, Node ngoal);
+            double calc_cost(const Node& n, const Node& ngoal);
             Eigen::MatrixXd get_motion_model();
-            bool verify_node(Node node);
+            bool verify_node(Node* node);
+            void calc_policy_map(std::unordered_map<int, Node*>& closed
+                    ,  Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic>& pmap);
+            void get_final_path(std::unordered_map<int, Node*>& closed, const Node ngoal, const Node nstart
+                            , const double reso);
+            void calc_astar_path(Eigen::Vector2d s, Eigen::Vector2d g
+                        , Eigen::MatrixXd obses, double reso, double vr);
+            Node search_min_cost_node(const std::unordered_map<int, Node*> open, const Node ngoal);
+            inline std::vector<Eigen::Vector2d> getPath(){
+                return final_path_;
+            }
 
         private:
             Eigen::Matrix<uint8_t, Eigen::Dynamic, Eigen::Dynamic> obs_map;
-            Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic> pmap;
             int minx_, miny_, maxx_, maxy_;
             int xwidth_, ywidth_;
+            std::vector<Eigen::Vector2d> final_path_;
     };   
 }
 

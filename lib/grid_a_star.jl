@@ -120,58 +120,63 @@ function calc_astar_path(sx::Float64, sy::Float64, gx::Float64, gy::Float64,
 
     obmap, minx, miny, maxx, maxy, xw, yw = calc_obstacle_map(ox, oy, reso, vr)
 
-    #open, closed set
-    open, closed = Dict{Int64, Node}(), Dict{Int64, Node}()
-    open[calc_index(nstart, xw, minx, miny)] = nstart
+    # #open, closed set
+    # open, closed = Dict{Int64, Node}(), Dict{Int64, Node}()
+    # open[calc_index(nstart, xw, minx, miny)] = nstart
 
-    motion = get_motion_model()
-    nmotion = length(motion[:,1])
-    pq = PriorityQueue()
-    enqueue!(pq, calc_index(nstart, xw, minx, miny), calc_cost(nstart, ngoal))
+    # motion = get_motion_model()
+    # nmotion = length(motion[:,1])
+    # pq = PriorityQueue()
+    # enqueue!(pq, calc_index(nstart, xw, minx, miny), calc_cost(nstart, ngoal))
+    # println("start ", nstart.x, ",", nstart.y, " goal ", ngoal.x, ", ", ngoal.y)
+    # while true
+    #     if length(open) == 0;println("Error: No open set");break;end
 
-    while true
-        if length(open) == 0;println("Error: No open set");break;end
+    #     c_id = dequeue!(pq)
+    #     current = open[c_id]
+    #     println("c_id ", c_id, ",", current.x, "  ", current.y)
+    #     if current.x == ngoal.x && current.y == ngoal.y # check goal
+    #         println("Goal!!")
+    #         closed[c_id] = current
+    #         break
+    #     end
 
-        c_id = dequeue!(pq)
-        current = open[c_id]
+    #     delete!(open, c_id)
+    #     closed[c_id] = current
 
-        if current.x == ngoal.x && current.y == ngoal.y # check goal
-            println("Goal!!")
-            closed[c_id] = current
-            break
-        end
+    #     for i in 1:nmotion # expand search grid based on motion model
+    #         node = Node(current.x+motion[i,1], current.y+motion[i,2], current.cost+motion[i,3], c_id)
 
-        delete!(open, c_id)
-        closed[c_id] = current
+    #         if !verify_node(node, minx, miny, xw, yw, obmap)
+    #             continue
+    #         end
 
-        for i in 1:nmotion # expand search grid based on motion model
-            node = Node(current.x+motion[i,1], current.y+motion[i,2], current.cost+motion[i,3], c_id)
+    #         node_ind = calc_index(node, xw, minx, miny)
 
-            if !verify_node(node, minx, miny, xw, yw, obmap)
-                continue
-            end
+    #         println("node_ind ", node_ind, ",", node.x, "  ", node.y)
 
-            node_ind = calc_index(node, xw, minx, miny)
+    #         # If it is already in the closed set, skip it
+    #         if haskey(closed,node_ind)  continue end
 
-            # If it is already in the closed set, skip it
-            if haskey(closed,node_ind)  continue end
+    #         if haskey(open, node_ind)
+    #             if open[node_ind].cost > node.cost
+    #                 # If so, update the node to have a new parent
+    #                 open[node_ind].cost = node.cost
+    #                 open[node_ind].pind = c_id
+    #                 println("open cost ", node.cost, ",", c_id)
+    #             end
+    #         else # add to open set
+    #             open[node_ind] = node
+    #             enqueue!(pq, calc_index(node, xw, minx, miny), calc_cost(node, ngoal))
+    #             println("enqueue ", calc_index(node, xw, minx, miny), ",", calc_cost(node, ngoal))
+    #         end
+    #     end
+    #     println("==============================================")
+    # end
 
-            if haskey(open, node_ind)
-                if open[node_ind].cost > node.cost
-                    # If so, update the node to have a new parent
-                    open[node_ind].cost = node.cost
-                    open[node_ind].pind = c_id
-                end
-            else # add to open set
-                open[node_ind] = node
-                enqueue!(pq, calc_index(node, xw, minx, miny), calc_cost(node, ngoal))
-            end
-        end
-    end
+    # rx, ry = get_final_path(closed, ngoal, nstart, xw, minx, miny, reso)
 
-    rx, ry = get_final_path(closed, ngoal, nstart, xw, minx, miny, reso)
-
-    return rx, ry
+    # return rx, ry
 end
 
 

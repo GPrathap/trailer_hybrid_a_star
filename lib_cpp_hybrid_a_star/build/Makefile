@@ -214,6 +214,30 @@ src/rs_paths.cpp.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/lib_cpp_hybrid_a_star.dir/build.make CMakeFiles/lib_cpp_hybrid_a_star.dir/src/rs_paths.cpp.s
 .PHONY : src/rs_paths.cpp.s
 
+src/trailerlib.o: src/trailerlib.cpp.o
+.PHONY : src/trailerlib.o
+
+# target to build an object file
+src/trailerlib.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/lib_cpp_hybrid_a_star.dir/build.make CMakeFiles/lib_cpp_hybrid_a_star.dir/src/trailerlib.cpp.o
+.PHONY : src/trailerlib.cpp.o
+
+src/trailerlib.i: src/trailerlib.cpp.i
+.PHONY : src/trailerlib.i
+
+# target to preprocess a source file
+src/trailerlib.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/lib_cpp_hybrid_a_star.dir/build.make CMakeFiles/lib_cpp_hybrid_a_star.dir/src/trailerlib.cpp.i
+.PHONY : src/trailerlib.cpp.i
+
+src/trailerlib.s: src/trailerlib.cpp.s
+.PHONY : src/trailerlib.s
+
+# target to generate assembly for a file
+src/trailerlib.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/lib_cpp_hybrid_a_star.dir/build.make CMakeFiles/lib_cpp_hybrid_a_star.dir/src/trailerlib.cpp.s
+.PHONY : src/trailerlib.cpp.s
+
 # Help Target
 help:
 	@echo "The following are some of the valid targets for this Makefile:"
@@ -233,6 +257,9 @@ help:
 	@echo "... src/rs_paths.o"
 	@echo "... src/rs_paths.i"
 	@echo "... src/rs_paths.s"
+	@echo "... src/trailerlib.o"
+	@echo "... src/trailerlib.i"
+	@echo "... src/trailerlib.s"
 .PHONY : help
 
 

@@ -97,19 +97,35 @@ CMakeFiles/lib_cpp_hybrid_a_star.dir/src/grid_a_star.cpp.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling CXX source to assembly CMakeFiles/lib_cpp_hybrid_a_star.dir/src/grid_a_star.cpp.s"
 	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/op/tmp/HybridAStarTrailer/lib_cpp_hybrid_a_star/src/grid_a_star.cpp -o CMakeFiles/lib_cpp_hybrid_a_star.dir/src/grid_a_star.cpp.s
 
+CMakeFiles/lib_cpp_hybrid_a_star.dir/src/trailerlib.cpp.o: CMakeFiles/lib_cpp_hybrid_a_star.dir/flags.make
+CMakeFiles/lib_cpp_hybrid_a_star.dir/src/trailerlib.cpp.o: /home/op/tmp/HybridAStarTrailer/lib_cpp_hybrid_a_star/src/trailerlib.cpp
+CMakeFiles/lib_cpp_hybrid_a_star.dir/src/trailerlib.cpp.o: CMakeFiles/lib_cpp_hybrid_a_star.dir/compiler_depend.ts
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/op/tmp/HybridAStarTrailer/lib_cpp_hybrid_a_star/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_3) "Building CXX object CMakeFiles/lib_cpp_hybrid_a_star.dir/src/trailerlib.cpp.o"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/lib_cpp_hybrid_a_star.dir/src/trailerlib.cpp.o -MF CMakeFiles/lib_cpp_hybrid_a_star.dir/src/trailerlib.cpp.o.d -o CMakeFiles/lib_cpp_hybrid_a_star.dir/src/trailerlib.cpp.o -c /home/op/tmp/HybridAStarTrailer/lib_cpp_hybrid_a_star/src/trailerlib.cpp
+
+CMakeFiles/lib_cpp_hybrid_a_star.dir/src/trailerlib.cpp.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Preprocessing CXX source to CMakeFiles/lib_cpp_hybrid_a_star.dir/src/trailerlib.cpp.i"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/op/tmp/HybridAStarTrailer/lib_cpp_hybrid_a_star/src/trailerlib.cpp > CMakeFiles/lib_cpp_hybrid_a_star.dir/src/trailerlib.cpp.i
+
+CMakeFiles/lib_cpp_hybrid_a_star.dir/src/trailerlib.cpp.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling CXX source to assembly CMakeFiles/lib_cpp_hybrid_a_star.dir/src/trailerlib.cpp.s"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/op/tmp/HybridAStarTrailer/lib_cpp_hybrid_a_star/src/trailerlib.cpp -o CMakeFiles/lib_cpp_hybrid_a_star.dir/src/trailerlib.cpp.s
+
 # Object files for target lib_cpp_hybrid_a_star
 lib_cpp_hybrid_a_star_OBJECTS = \
 "CMakeFiles/lib_cpp_hybrid_a_star.dir/src/rs_paths.cpp.o" \
-"CMakeFiles/lib_cpp_hybrid_a_star.dir/src/grid_a_star.cpp.o"
+"CMakeFiles/lib_cpp_hybrid_a_star.dir/src/grid_a_star.cpp.o" \
+"CMakeFiles/lib_cpp_hybrid_a_star.dir/src/trailerlib.cpp.o"
 
 # External object files for target lib_cpp_hybrid_a_star
 lib_cpp_hybrid_a_star_EXTERNAL_OBJECTS =
 
 liblib_cpp_hybrid_a_star.a: CMakeFiles/lib_cpp_hybrid_a_star.dir/src/rs_paths.cpp.o
 liblib_cpp_hybrid_a_star.a: CMakeFiles/lib_cpp_hybrid_a_star.dir/src/grid_a_star.cpp.o
+liblib_cpp_hybrid_a_star.a: CMakeFiles/lib_cpp_hybrid_a_star.dir/src/trailerlib.cpp.o
 liblib_cpp_hybrid_a_star.a: CMakeFiles/lib_cpp_hybrid_a_star.dir/build.make
 liblib_cpp_hybrid_a_star.a: CMakeFiles/lib_cpp_hybrid_a_star.dir/link.txt
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --bold --progress-dir=/home/op/tmp/HybridAStarTrailer/lib_cpp_hybrid_a_star/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_3) "Linking CXX static library liblib_cpp_hybrid_a_star.a"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --bold --progress-dir=/home/op/tmp/HybridAStarTrailer/lib_cpp_hybrid_a_star/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_4) "Linking CXX static library liblib_cpp_hybrid_a_star.a"
 	$(CMAKE_COMMAND) -P CMakeFiles/lib_cpp_hybrid_a_star.dir/cmake_clean_target.cmake
 	$(CMAKE_COMMAND) -E cmake_link_script CMakeFiles/lib_cpp_hybrid_a_star.dir/link.txt --verbose=$(VERBOSE)
 

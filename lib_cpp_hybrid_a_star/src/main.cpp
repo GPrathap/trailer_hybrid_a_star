@@ -6,47 +6,10 @@
 #include "matplotlibcpp.h"
 namespace plt = matplotlibcpp;
 
+int main(int argc, char *argv[]) {
 
-int main(int argc, char *argv[]){
-    Eigen::Vector2d s(10.0, 10.0);
-    Eigen::Vector2d g(50.0, 50.0);
-
-    Eigen::MatrixXd obss(320, 2);
-    int obs_index = 0;
-    for(int i=0; i< 60; i++){
-        obss.row(obs_index) << i*1.0, 0.0;
-        obs_index++;
-    }
-    for(int i=0; i< 60; i++){
-        obss.row(obs_index) << 60.0, i*1.0;
-        obs_index++;
-    }
-    for(int i=0; i< 60; i++){
-        obss.row(obs_index) << i*1.0, 60.0;
-        obs_index++;
-    }
-    for(int i=0; i< 60; i++){
-        obss.row(obs_index) << 0.0, i*1.0;
-        obs_index++;
-    }
-    for(int i=0; i< 40; i++){
-        obss.row(obs_index) << 20.0, i*1.0;
-        obs_index++;
-    }
-    for(int i=0; i< 40; i++){
-        obss.row(obs_index) << 40.0, 60.0-i*1.0;
-        obs_index++;
-    }
-
-    double VEHICLE_RADIUS = 5.0;
-    double GRID_RESOLUTION = 1.0;
-
-    grid_search::GridAStar grid_a_star;
-    grid_a_star.calc_dist_policy(s, g, obss, GRID_RESOLUTION, VEHICLE_RADIUS);
+  
 }
-
-
-
 // int main(int argc, char *argv[]) {
 
 //     rs_paths::RSPaths rs_path;
