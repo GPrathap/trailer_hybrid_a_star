@@ -3,13 +3,21 @@
 
 #include "lib_cpp_hybrid_a_star/rs_paths.hpp"
 #include "lib_cpp_hybrid_a_star/grid_a_star.hpp"
+#include "lib_cpp_hybrid_a_star/trailerlib.hpp"
 #include "matplotlibcpp.h"
+
 namespace plt = matplotlibcpp;
 
 int main(int argc, char *argv[]) {
 
-  
+    double x = 0.0;
+    double y = 0.0;
+    double yaw0 = math_utility::deg2rad(10.0);
+    double yaw1 = math_utility::deg2rad(-10.0);
+    planning::TrailerLib trailer_lib;
+    trailer_lib.plot_trailer(x, y, yaw0, yaw1, 0.0);
 }
+
 // int main(int argc, char *argv[]) {
 
 //     rs_paths::RSPaths rs_path;

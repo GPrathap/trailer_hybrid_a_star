@@ -263,6 +263,9 @@ lib_cpp_hybrid_a_star_BINARY_DIR:STATIC=/home/op/tmp/HybridAStarTrailer/lib_cpp_
 //Value Computed by CMake
 lib_cpp_hybrid_a_star_IS_TOP_LEVEL:STATIC=ON
 
+//Dependencies for the target
+lib_cpp_hybrid_a_star_LIB_DEPENDS:STATIC=general;/usr/lib/x86_64-linux-gnu/libpython3.10.so;
+
 //Value Computed by CMake
 lib_cpp_hybrid_a_star_SOURCE_DIR:STATIC=/home/op/tmp/HybridAStarTrailer/lib_cpp_hybrid_a_star
 

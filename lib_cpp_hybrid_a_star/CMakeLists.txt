@@ -33,7 +33,7 @@ include_directories(
 )
 
 add_library(lib_cpp_hybrid_a_star src/rs_paths.cpp src/grid_a_star.cpp src/trailerlib.cpp)
-target_link_libraries(lib_cpp_hybrid_a_star  Eigen3::Eigen)
+target_link_libraries(lib_cpp_hybrid_a_star  Eigen3::Eigen ${PYTHON_LIBRARIES} Python3::NumPy)
 
 add_executable(hybrid_a_star src/main.cpp)
 target_link_libraries(hybrid_a_star  Eigen3::Eigen lib_cpp_hybrid_a_star  ${PYTHON_LIBRARIES} Python3::NumPy)

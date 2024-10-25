@@ -18,6 +18,7 @@ CMakeFiles/hybrid_a_star.dir/src/main.cpp.o: /home/op/tmp/HybridAStarTrailer/lib
   /home/op/tmp/HybridAStarTrailer/lib_cpp_hybrid_a_star/include/lib_cpp_hybrid_a_star/grid_a_star.hpp \
   /home/op/tmp/HybridAStarTrailer/lib_cpp_hybrid_a_star/include/lib_cpp_hybrid_a_star/math_utility.hpp \
   /home/op/tmp/HybridAStarTrailer/lib_cpp_hybrid_a_star/include/lib_cpp_hybrid_a_star/rs_paths.hpp \
+  /home/op/tmp/HybridAStarTrailer/lib_cpp_hybrid_a_star/include/lib_cpp_hybrid_a_star/trailerlib.hpp \
   /home/op/tmp/HybridAStarTrailer/lib_cpp_hybrid_a_star/include/nanoflann.hpp \
   /usr/include/alloca.h \
   /usr/include/asm-generic/bitsperlong.h \
@@ -1158,6 +1159,8 @@ CMakeFiles/hybrid_a_star.dir/src/main.cpp.o: /home/op/tmp/HybridAStarTrailer/lib
 
 /usr/include/python3.10/sysmodule.h:
 
+/usr/include/python3.10/structseq.h:
+
 /usr/include/eigen3/Eigen/src/Core/CwiseUnaryOp.h:
 
 /usr/include/eigen3/Eigen/src/SVD/UpperBidiagonalization.h:
@@ -1183,16 +1186,6 @@ CMakeFiles/hybrid_a_star.dir/src/main.cpp.o: /home/op/tmp/HybridAStarTrailer/lib
 /usr/include/eigen3/Eigen/QR:
 
 /usr/include/linux/types.h:
-
-/usr/include/eigen3/Eigen/SVD:
-
-/usr/include/eigen3/Eigen/Jacobi:
-
-/usr/include/x86_64-linux-gnu/bits/ss_flags.h:
-
-/usr/include/c++/11/chrono:
-
-/usr/include/eigen3/Eigen/src/Core/functors/NullaryFunctors.h:
 
 /usr/include/eigen3/Eigen/Geometry:
 
@@ -1240,9 +1233,9 @@ CMakeFiles/hybrid_a_star.dir/src/main.cpp.o: /home/op/tmp/HybridAStarTrailer/lib
 
 /usr/include/c++/11/streambuf:
 
-/usr/include/c++/11/bits/hash_bytes.h:
-
 /usr/include/c++/11/tr1/hypergeometric.tcc:
+
+/usr/include/c++/11/bits/hash_bytes.h:
 
 /usr/include/c++/11/stdexcept:
 
@@ -1372,6 +1365,20 @@ CMakeFiles/hybrid_a_star.dir/src/main.cpp.o: /home/op/tmp/HybridAStarTrailer/lib
 
 /usr/include/python3.10/fileobject.h:
 
+/usr/include/x86_64-linux-gnu/bits/ss_flags.h:
+
+/usr/include/c++/11/chrono:
+
+/usr/include/eigen3/Eigen/Jacobi:
+
+/usr/include/eigen3/Eigen/src/Core/functors/NullaryFunctors.h:
+
+/usr/include/c++/11/cctype:
+
+/usr/include/eigen3/Eigen/src/Core/ArithmeticSequence.h:
+
+/usr/include/python3.10/cpython/fileutils.h:
+
 /usr/include/eigen3/Eigen/src/Core/BooleanRedux.h:
 
 /usr/include/eigen3/Eigen/src/LU/PartialPivLU.h:
@@ -1456,6 +1463,10 @@ CMakeFiles/hybrid_a_star.dir/src/main.cpp.o: /home/op/tmp/HybridAStarTrailer/lib
 
 /usr/include/c++/11/bit:
 
+/usr/include/c++/11/bits/stream_iterator.h:
+
+/usr/include/python3.10/iterobject.h:
+
 /usr/include/eigen3/Eigen/Householder:
 
 /usr/include/asm-generic/int-ll64.h:
@@ -1520,10 +1531,6 @@ CMakeFiles/hybrid_a_star.dir/src/main.cpp.o: /home/op/tmp/HybridAStarTrailer/lib
 
 /usr/include/c++/11/bits/std_abs.h:
 
-/usr/include/c++/11/bits/stream_iterator.h:
-
-/usr/include/python3.10/iterobject.h:
-
 /usr/include/x86_64-linux-gnu/bits/types/clock_t.h:
 
 /usr/include/x86_64-linux-gnu/bits/sched.h:
@@ -1531,6 +1538,10 @@ CMakeFiles/hybrid_a_star.dir/src/main.cpp.o: /home/op/tmp/HybridAStarTrailer/lib
 /usr/include/c++/11/complex:
 
 /home/op/.local/lib/python3.10/site-packages/numpy/core/include/numpy/npy_cpu.h:
+
+/usr/include/eigen3/Eigen/SVD:
+
+_deps/matplotlib-src/matplotlibcpp.h:
 
 /usr/include/c++/11/bits/alloc_traits.h:
 
@@ -1542,6 +1553,10 @@ CMakeFiles/hybrid_a_star.dir/src/main.cpp.o: /home/op/tmp/HybridAStarTrailer/lib
 
 /usr/include/eigen3/Eigen/src/Core/arch/SSE/MathFunctions.h:
 
+/usr/include/python3.10/listobject.h:
+
+/usr/include/c++/11/tr1/riemann_zeta.tcc:
+
 /usr/include/c++/11/ext/new_allocator.h:
 
 /home/op/.local/lib/python3.10/site-packages/numpy/core/include/numpy/arrayobject.h:
@@ -1549,8 +1564,6 @@ CMakeFiles/hybrid_a_star.dir/src/main.cpp.o: /home/op/tmp/HybridAStarTrailer/lib
 /usr/include/c++/11/bits/cxxabi_forced.h:
 
 /usr/include/c++/11/bits/unique_ptr.h:
-
-_deps/matplotlib-src/matplotlibcpp.h:
 
 /usr/include/c++/11/tr1/special_function_util.h:
 
@@ -1585,8 +1598,6 @@ _deps/matplotlib-src/matplotlibcpp.h:
 /usr/include/x86_64-linux-gnu/bits/waitflags.h:
 
 /usr/include/eigen3/Eigen/src/Core/VectorBlock.h:
-
-/usr/include/python3.10/structseq.h:
 
 /usr/include/eigen3/Eigen/src/Core/Random.h:
 
@@ -1636,18 +1647,6 @@ _deps/matplotlib-src/matplotlibcpp.h:
 
 /usr/include/eigen3/Eigen/src/Core/util/DisableStupidWarnings.h:
 
-/usr/include/c++/11/bits/streambuf.tcc:
-
-/usr/include/unistd.h:
-
-/home/op/.local/lib/python3.10/site-packages/numpy/core/include/numpy/ndarraytypes.h:
-
-/usr/include/c++/11/bits/vector.tcc:
-
-/usr/include/x86_64-linux-gnu/sys/types.h:
-
-/usr/include/c++/11/bits/stl_vector.h:
-
 /usr/include/c++/11/pstl/pstl_config.h:
 
 /usr/include/x86_64-linux-gnu/bits/types/__fpos64_t.h:
@@ -1665,6 +1664,18 @@ _deps/matplotlib-src/matplotlibcpp.h:
 /usr/include/math.h:
 
 /usr/include/c++/11/array:
+
+/usr/include/unistd.h:
+
+/home/op/.local/lib/python3.10/site-packages/numpy/core/include/numpy/ndarraytypes.h:
+
+/usr/include/c++/11/bits/vector.tcc:
+
+/usr/include/x86_64-linux-gnu/sys/types.h:
+
+/usr/include/c++/11/bits/stl_vector.h:
+
+/usr/include/c++/11/bits/streambuf.tcc:
 
 /usr/include/c++/11/bits/hashtable.h:
 
@@ -1790,16 +1801,6 @@ _deps/matplotlib-src/matplotlibcpp.h:
 
 /usr/include/eigen3/Eigen/LU:
 
-/usr/include/eigen3/Eigen/src/Core/ArithmeticSequence.h:
-
-/usr/include/c++/11/cctype:
-
-/usr/include/python3.10/cpython/fileutils.h:
-
-/usr/include/c++/11/tr1/riemann_zeta.tcc:
-
-/usr/include/python3.10/listobject.h:
-
 /usr/include/c++/11/bits/stl_algobase.h:
 
 /usr/include/c++/11/bits/std_thread.h:
@@ -1882,10 +1883,6 @@ _deps/matplotlib-src/matplotlibcpp.h:
 
 /usr/include/c++/11/bits/uses_allocator_args.h:
 
-/usr/lib/gcc/x86_64-linux-gnu/11/include/avx512vpopcntdqvlintrin.h:
-
-/usr/include/eigen3/Eigen/src/Core/DenseStorage.h:
-
 /usr/include/c++/11/pstl/parallel_backend.h:
 
 /usr/include/python3.10/modsupport.h:
@@ -1907,6 +1904,10 @@ _deps/matplotlib-src/matplotlibcpp.h:
 /usr/include/x86_64-linux-gnu/python3.10/pyconfig.h:
 
 /usr/include/eigen3/Eigen/src/Core/Transpositions.h:
+
+/usr/lib/gcc/x86_64-linux-gnu/11/include/avx512vpopcntdqvlintrin.h:
+
+/usr/include/eigen3/Eigen/src/Core/DenseStorage.h:
 
 /usr/include/eigen3/Eigen/src/Core/BandMatrix.h:
 
@@ -2323,6 +2324,8 @@ _deps/matplotlib-src/matplotlibcpp.h:
 /usr/include/python3.10/classobject.h:
 
 /usr/include/c++/11/bits/nested_exception.h:
+
+/home/op/tmp/HybridAStarTrailer/lib_cpp_hybrid_a_star/include/lib_cpp_hybrid_a_star/trailerlib.hpp:
 
 /usr/include/c++/11/bits/range_access.h:
 
