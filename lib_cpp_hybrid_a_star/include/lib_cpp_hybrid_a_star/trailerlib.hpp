@@ -54,15 +54,14 @@ namespace planning
             bool rect_check(const Eigen::Vector3d& current_pose, const Eigen::MatrixXd& obses
                                 , const std::vector<double> vrx, const std::vector<double> vry);
 
-            bool check_collision(const rs_paths::Path path, grid_search::KDTree& kd_tree
+            bool check_collision(Eigen::MatrixXd& poses, grid_search::KDTree& kd_tree
                         , const Eigen::MatrixXd& obses, double wbd, double wbr
                         , const std::vector<double> vrx, const std::vector<double> vry);
 
-            void calc_trailer_yaw_from_xyyaw(const rs_paths::Path path, const double init_tyaw
-                                                        , std::vector<double> steps, Eigen::VectorXd& yaws);
-
-            bool check_trailer_collision(const Eigen::MatrixXd& obses, const rs_paths::Path path, Eigen::VectorXd& yaw1
-                    , grid_search::KDTree& kd_tree);
+            void calc_trailer_yaw_from_xyyaw(Eigen::MatrixXd& poses, const double init_tyaw
+                                                        , Eigen::VectorXd& steps, Eigen::VectorXd& yaws);
+            bool check_trailer_collision(const Eigen::MatrixXd& obses
+                                    , Eigen::MatrixXd& poses, grid_search::KDTree& kd_tree);
             void plot_trailer(double x, double y, double yaw, double yaw1, double steer);
         private:
             

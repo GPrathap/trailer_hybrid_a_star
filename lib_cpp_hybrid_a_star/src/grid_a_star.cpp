@@ -71,7 +71,7 @@ namespace grid_search
         return motion;
     }
 
-    void GridAStar::calc_dist_policy(Eigen::Vector2d s, Eigen::Vector2d g
+    void GridAStar::calc_dist_policy(Eigen::Vector2d g
                         , Eigen::MatrixXd obses, double reso, double vr
                         , Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic>& pmap){
         

@@ -17,7 +17,7 @@ namespace math_utility
         return angle;
     }
 
-    inline double deg2rad(double degrees) {
+    constexpr inline double deg2rad(double degrees) {
         return degrees * (M_PI / 180.0);
     }
 

@@ -32,7 +32,7 @@ include_directories(
     ${matplotlib_SOURCE_DIR}
 )
 
-add_library(lib_cpp_hybrid_a_star src/rs_paths.cpp src/grid_a_star.cpp src/trailerlib.cpp)
+add_library(lib_cpp_hybrid_a_star src/rs_paths.cpp src/grid_a_star.cpp src/trailerlib.cpp src/trailer_hybrid_a_star.cpp)
 target_link_libraries(lib_cpp_hybrid_a_star  Eigen3::Eigen ${PYTHON_LIBRARIES} Python3::NumPy)
 
 add_executable(hybrid_a_star src/main.cpp)

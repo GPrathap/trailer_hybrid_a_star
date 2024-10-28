@@ -43,13 +43,13 @@ namespace planning
         return true;
     }
 
-    bool TrailerLib::check_collision(const rs_paths::Path path, grid_search::KDTree& kd_tree
+    bool TrailerLib::check_collision(Eigen::MatrixXd& poses, grid_search::KDTree& kd_tree
                         , const Eigen::MatrixXd& obses, double wbd, double wbr
                         , const std::vector<double> vrx, const std::vector<double> vry){
         
         double radius = wbr;
-        for(int i=0; i<path.poses.rows(); i++){
-            Eigen::VectorXd next_pose = path.poses.row(i);
+        for(int i=0; i<poses.rows(); i++){
+            Eigen::VectorXd next_pose = poses.row(i);
             double cx = next_pose[0] + wbd*cos(next_pose[2]);
             double cy = next_pose[1] + wbd*sin(next_pose[2]);
             std::vector<size_t> ret_indexes;
@@ -79,9 +79,9 @@ namespace planning
         return true;
     }
 
-    void TrailerLib::calc_trailer_yaw_from_xyyaw(const rs_paths::Path path, const double init_tyaw
-                                                        , std::vector<double> steps, Eigen::VectorXd& yaws){
-        Eigen::VectorXd yaw = path.poses.col(2);
+    void TrailerLib::calc_trailer_yaw_from_xyyaw(Eigen::MatrixXd& poses, const double init_tyaw
+                                                        , Eigen::VectorXd& steps, Eigen::VectorXd& yaws){
+        Eigen::VectorXd yaw = poses.col(2);
         yaws.resize(yaw.size());
         yaws[0] = init_tyaw;
         for(int i=1; i<yaws.size(); i++){
@@ -89,8 +89,8 @@ namespace planning
         }
     } 
 
-    bool TrailerLib::check_trailer_collision(const Eigen::MatrixXd& obses, const rs_paths::Path path, Eigen::VectorXd& yaw1
-                    , grid_search::KDTree& kd_tree){
+    bool TrailerLib::check_trailer_collision(const Eigen::MatrixXd& obses
+                                    , Eigen::MatrixXd& poses, grid_search::KDTree& kd_tree){
                     
         std::vector<double> vrxt = {VehicleParams::LTF, VehicleParams::LTF, -VehicleParams::LTB
                                     , -VehicleParams::LTB, VehicleParams::LTF};
@@ -101,9 +101,9 @@ namespace planning
         double DTR = (VehicleParams::LTF + VehicleParams::LTB)/2.0 + 0.3;
 
 
-        rs_paths::Path back_path = path;
-        rs_paths::Path front_path = path;
-        back_path.poses.col(2) = yaw1;
+        Eigen::MatrixXd back_path = poses;
+        Eigen::MatrixXd front_path = poses;
+        back_path.col(2) = poses.col(3);
 
         if (!check_collision(back_path, kd_tree, obses, DT, DTR, vrxt, vryt)){
             return false;

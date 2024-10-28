@@ -214,6 +214,30 @@ src/rs_paths.cpp.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/lib_cpp_hybrid_a_star.dir/build.make CMakeFiles/lib_cpp_hybrid_a_star.dir/src/rs_paths.cpp.s
 .PHONY : src/rs_paths.cpp.s
 
+src/trailer_hybrid_a_star.o: src/trailer_hybrid_a_star.cpp.o
+.PHONY : src/trailer_hybrid_a_star.o
+
+# target to build an object file
+src/trailer_hybrid_a_star.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/lib_cpp_hybrid_a_star.dir/build.make CMakeFiles/lib_cpp_hybrid_a_star.dir/src/trailer_hybrid_a_star.cpp.o
+.PHONY : src/trailer_hybrid_a_star.cpp.o
+
+src/trailer_hybrid_a_star.i: src/trailer_hybrid_a_star.cpp.i
+.PHONY : src/trailer_hybrid_a_star.i
+
+# target to preprocess a source file
+src/trailer_hybrid_a_star.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/lib_cpp_hybrid_a_star.dir/build.make CMakeFiles/lib_cpp_hybrid_a_star.dir/src/trailer_hybrid_a_star.cpp.i
+.PHONY : src/trailer_hybrid_a_star.cpp.i
+
+src/trailer_hybrid_a_star.s: src/trailer_hybrid_a_star.cpp.s
+.PHONY : src/trailer_hybrid_a_star.s
+
+# target to generate assembly for a file
+src/trailer_hybrid_a_star.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/lib_cpp_hybrid_a_star.dir/build.make CMakeFiles/lib_cpp_hybrid_a_star.dir/src/trailer_hybrid_a_star.cpp.s
+.PHONY : src/trailer_hybrid_a_star.cpp.s
+
 src/trailerlib.o: src/trailerlib.cpp.o
 .PHONY : src/trailerlib.o
 
@@ -257,6 +281,9 @@ help:
 	@echo "... src/rs_paths.o"
 	@echo "... src/rs_paths.i"
 	@echo "... src/rs_paths.s"
+	@echo "... src/trailer_hybrid_a_star.o"
+	@echo "... src/trailer_hybrid_a_star.i"
+	@echo "... src/trailer_hybrid_a_star.s"
 	@echo "... src/trailerlib.o"
 	@echo "... src/trailerlib.i"
 	@echo "... src/trailerlib.s"

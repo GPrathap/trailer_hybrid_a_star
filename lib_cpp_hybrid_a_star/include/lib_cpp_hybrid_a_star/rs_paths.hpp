@@ -27,8 +27,15 @@ namespace rs_paths
         std::vector<std::string> ctypes;
         double L{0.0};
         Eigen::MatrixXd poses;
+        double cost;
         // Path() : lengths{} {}
     } Path;
+
+    struct CompareNode {
+        bool operator()(const Path& a, const Path& b) {
+            return a.cost > b.cost;
+        }
+    };
 
     template <typename T>
     void printVector(const std::vector<T>& vec) {
