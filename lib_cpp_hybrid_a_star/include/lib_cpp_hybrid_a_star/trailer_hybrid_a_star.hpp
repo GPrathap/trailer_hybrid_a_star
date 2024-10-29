@@ -154,8 +154,7 @@ namespace planning
                                                     , HybridNode& ngoal
                                                     , HybridNode& nstart, HybridPath& path);
             bool calc_hybrid_astar_path(Eigen::Vector4d s
-                        , Eigen::Vector4d g, Eigen::MatrixXd& obses
-                        , double xyreso, double yawreso, HybridPath& path);
+                        , Eigen::Vector4d g, Eigen::MatrixXd& obses, HybridPath& path);
         private:
             Config config_;
             Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic> h_dp;

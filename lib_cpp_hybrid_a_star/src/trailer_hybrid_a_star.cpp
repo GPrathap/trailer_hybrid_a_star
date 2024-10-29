@@ -202,10 +202,12 @@ namespace planning
 
 
     bool TrailerHybridAStar::calc_hybrid_astar_path(Eigen::Vector4d s, Eigen::Vector4d g
-                        , Eigen::MatrixXd& obses, double xyreso, double yawreso, HybridPath& path){
+                        , Eigen::MatrixXd& obses, HybridPath& path){
             double syaw = math_utility::pi_to_pi(s[2]);
             double gyaw = math_utility::pi_to_pi(g[2]);
 
+            double xyreso = PlannerParams::XY_GRID_RESOLUTION;
+            double yawreso = PlannerParams::YAW_GRID_RESOLUTION;
             grid_search::PointCloud cloud;
             cloud.points = obses;
 

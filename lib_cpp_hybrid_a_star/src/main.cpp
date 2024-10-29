@@ -4,19 +4,137 @@
 #include "lib_cpp_hybrid_a_star/rs_paths.hpp"
 #include "lib_cpp_hybrid_a_star/grid_a_star.hpp"
 #include "lib_cpp_hybrid_a_star/trailerlib.hpp"
+#include "lib_cpp_hybrid_a_star/trailer_hybrid_a_star.hpp"
 #include "matplotlibcpp.h"
 
 namespace plt = matplotlibcpp;
 
-int main(int argc, char *argv[]) {
+int main(int arc, char *argv[]){
 
-    double x = 0.0;
-    double y = 0.0;
-    double yaw0 = math_utility::deg2rad(10.0);
-    double yaw1 = math_utility::deg2rad(-10.0);
-    planning::TrailerLib trailer_lib;
-    trailer_lib.plot_trailer(x, y, yaw0, yaw1, 0.0);
+    Eigen::Vector4d s(-10.0, 6.0, math_utility::deg2rad(0.0), math_utility::deg2rad(0.0));
+    Eigen::Vector4d g(0.0, 0.0, math_utility::deg2rad(90.0), math_utility::deg2rad(90.0));
+    
+    Eigen::MatrixXd obss(138, 2);
+    int obs_index = 0;
+    for(int i=-25; i< 25; i++){
+        obss.row(obs_index) << i*1.0, 15.0;
+        obs_index++;
+    }
+    for(int i=-25; i< -4; i++){
+        obss.row(obs_index) << i*1.0, 4.0;
+        obs_index++;
+    }
+    for(int i=-15; i< 4; i++){
+        obss.row(obs_index) << -4.0, i*1.0;
+        obs_index++;
+    }
+    for(int i=-15; i< 4; i++){
+        obss.row(obs_index) << 4.0, i*1.0;
+        obs_index++;
+    }
+    for(int i=4; i< 25; i++){
+        obss.row(obs_index) << i*1.0, 4.0;
+        obs_index++;
+    }
+    for(int i=-4; i< 4; i++){
+        obss.row(obs_index) << i*1.0, -15.0;
+        obs_index++;
+    }
+
+    planning::HybridPath path;
+    planning::TrailerHybridAStar trailer_hybrid_astar;
+    bool find_path = trailer_hybrid_astar.calc_hybrid_astar_path(s, g, obss, path);
+
+    plt::figure();
+    std::vector<double> ox, oy;
+    for(int i=0; i< obss.rows(); i++){
+        ox.push_back(obss.row(i)[0]);
+        oy.push_back(obss.row(i)[1]);
+    }
+
+    std::vector<double> path_x, path_y;
+    for(int i=0; i< path.poses.rows(); i++){
+        path_x.push_back(path.poses.row(i)[0]);
+        path_y.push_back(path.poses.row(i)[1]);
+    }
+    plt::plot(ox, oy, ".r");
+    plt::plot(path_x, path_y, ".y");
+    plt::plot({s.x()}, {s.y()}, "bo"); // Start point
+    plt::plot({g.x()}, {g.y()}, "go");    // End point
+    plt::show();
+
+
+
+    
+
+    // @time path = calc_hybrid_astar_path(sx, sy, syaw0, syaw1, gx, gy, gyaw0, gyaw1, ox, oy, XY_GRID_RESOLUTION, YAW_GRID_RESOLUTION)
+
+//     # Base.Test.@test length(path.x)>=1
+
+//     sx = 14.0  # [m]
+//     sy = 10.0  # [m]
+//     syaw0 = deg2rad(00.0)
+//     syaw1 = deg2rad(00.0)
+
+//     @time path = calc_hybrid_astar_path(sx, sy, syaw0, syaw1, gx, gy, gyaw0, gyaw1, ox, oy, XY_GRID_RESOLUTION, YAW_GRID_RESOLUTION)
+
+//     # Base.Test.@test length(path.x)>=1
+
+//     sx = -14.0  # [m]
+//     sy = 12.0  # [m]
+//     syaw0 = deg2rad(00.0)
+//     syaw1 = deg2rad(00.0)
+//     @time path = calc_hybrid_astar_path(sx, sy, syaw0, syaw1, gx, gy, gyaw0, gyaw1, ox, oy, XY_GRID_RESOLUTION, YAW_GRID_RESOLUTION)
+
+//     # Base.Test.@test length(path.x)>=1
+
+//     sx = -20.0  # [m]
+//     sy = 6.0  # [m]
+//     syaw0 = deg2rad(00.0)
+//     syaw1 = deg2rad(00.0)
+//     @time path = calc_hybrid_astar_path(sx, sy, syaw0, syaw1, gx, gy, gyaw0, gyaw1, ox, oy, XY_GRID_RESOLUTION, YAW_GRID_RESOLUTION)
+
+//     # Base.Test.@test length(path.x)>=1
+
+//     sx = -14.0  # [m]
+//     sy = 12.0  # [m]
+//     syaw0 = deg2rad(00.0)
+//     syaw1 = deg2rad(00.0)
+//     path = calc_hybrid_astar_path(sx, sy, syaw0, syaw1, gx, gy, gyaw0, gyaw1, ox, oy, XY_GRID_RESOLUTION, YAW_GRID_RESOLUTION)
+
+//     # Base.Test.@test length(path.x)>=1
+
+//     sx = -20.0  # [m]
+//     sy = 6.0  # [m]
+//     syaw0 = deg2rad(180.0)
+//     syaw1 = deg2rad(180.0)
+//     @time path = calc_hybrid_astar_path(sx, sy, syaw0, syaw1, gx, gy, gyaw0, gyaw1, ox, oy, XY_GRID_RESOLUTION, YAW_GRID_RESOLUTION)
+
+//     # Base.Test.@test length(path.x)>=1
+
+//     sx = -20.0  # [m]
+//     sy = 12.0  # [m]
+//     syaw0 = deg2rad(180.0)
+//     syaw1 = deg2rad(180.0)
+
+//     @time path = calc_hybrid_astar_path(sx, sy, syaw0, syaw1, gx, gy, gyaw0, gyaw1, ox, oy, XY_GRID_RESOLUTION, YAW_GRID_RESOLUTION)
+
+//     # Base.Test.@test length(path.x)>=1
+
+//     println("Test Done !!!")
+// end
 }
+
+
+
+// int main(int argc, char *argv[]) {
+//     double x = 0.0;
+//     double y = 0.0;
+//     double yaw0 = math_utility::deg2rad(10.0);
+//     double yaw1 = math_utility::deg2rad(-10.0);
+//     planning::TrailerLib trailer_lib;
+//     trailer_lib.plot_trailer(x, y, yaw0, yaw1, 0.0);
+// }
 
 // int main(int argc, char *argv[]) {
 

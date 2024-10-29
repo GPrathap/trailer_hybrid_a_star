@@ -18,6 +18,7 @@ CMakeFiles/hybrid_a_star.dir/src/main.cpp.o: /home/op/tmp/HybridAStarTrailer/lib
   /home/op/tmp/HybridAStarTrailer/lib_cpp_hybrid_a_star/include/lib_cpp_hybrid_a_star/grid_a_star.hpp \
   /home/op/tmp/HybridAStarTrailer/lib_cpp_hybrid_a_star/include/lib_cpp_hybrid_a_star/math_utility.hpp \
   /home/op/tmp/HybridAStarTrailer/lib_cpp_hybrid_a_star/include/lib_cpp_hybrid_a_star/rs_paths.hpp \
+  /home/op/tmp/HybridAStarTrailer/lib_cpp_hybrid_a_star/include/lib_cpp_hybrid_a_star/trailer_hybrid_a_star.hpp \
   /home/op/tmp/HybridAStarTrailer/lib_cpp_hybrid_a_star/include/lib_cpp_hybrid_a_star/trailerlib.hpp \
   /home/op/tmp/HybridAStarTrailer/lib_cpp_hybrid_a_star/include/nanoflann.hpp \
   /usr/include/alloca.h \
@@ -1161,6 +1162,8 @@ CMakeFiles/hybrid_a_star.dir/src/main.cpp.o: /home/op/tmp/HybridAStarTrailer/lib
 
 /usr/include/python3.10/structseq.h:
 
+/usr/include/python3.10/sliceobject.h:
+
 /usr/include/eigen3/Eigen/src/Core/CwiseUnaryOp.h:
 
 /usr/include/eigen3/Eigen/src/SVD/UpperBidiagonalization.h:
@@ -1328,16 +1331,6 @@ CMakeFiles/hybrid_a_star.dir/src/main.cpp.o: /home/op/tmp/HybridAStarTrailer/lib
 /usr/include/c++/11/debug/debug.h:
 
 /usr/include/python3.10/patchlevel.h:
-
-/usr/include/eigen3/Eigen/src/Core/DenseCoeffsBase.h:
-
-/usr/include/eigen3/Eigen/src/Core/Array.h:
-
-/usr/include/eigen3/Eigen/src/Core/Map.h:
-
-/usr/include/c++/11/istream:
-
-/usr/include/eigen3/Eigen/src/Core/util/ForwardDeclarations.h:
 
 /usr/include/x86_64-linux-gnu/bits/time64.h:
 
@@ -1625,6 +1618,14 @@ _deps/matplotlib-src/matplotlibcpp.h:
 
 /usr/include/alloca.h:
 
+/home/op/tmp/HybridAStarTrailer/lib_cpp_hybrid_a_star/include/lib_cpp_hybrid_a_star/trailer_hybrid_a_star.hpp:
+
+/usr/include/sched.h:
+
+/usr/include/c++/11/bits/stl_pair.h:
+
+/usr/include/c++/11/array:
+
 /usr/include/c++/11/map:
 
 /usr/include/x86_64-linux-gnu/asm/bitsperlong.h:
@@ -1659,11 +1660,13 @@ _deps/matplotlib-src/matplotlibcpp.h:
 
 /usr/include/eigen3/Eigen/src/Core/Stride.h:
 
+/usr/include/c++/11/math.h:
+
+/usr/include/assert.h:
+
 /usr/include/c++/11/condition_variable:
 
 /usr/include/math.h:
-
-/usr/include/c++/11/array:
 
 /usr/include/unistd.h:
 
@@ -1678,10 +1681,6 @@ _deps/matplotlib-src/matplotlibcpp.h:
 /usr/include/c++/11/bits/streambuf.tcc:
 
 /usr/include/c++/11/bits/hashtable.h:
-
-/usr/include/assert.h:
-
-/usr/include/c++/11/math.h:
 
 /usr/include/c++/11/bits/hashtable_policy.h:
 
@@ -1815,6 +1814,16 @@ _deps/matplotlib-src/matplotlibcpp.h:
 
 /usr/include/python3.10/cpython/object.h:
 
+/usr/include/eigen3/Eigen/src/Core/Array.h:
+
+/usr/include/eigen3/Eigen/src/Core/DenseCoeffsBase.h:
+
+/usr/include/eigen3/Eigen/src/Core/Map.h:
+
+/usr/include/c++/11/istream:
+
+/usr/include/eigen3/Eigen/src/Core/util/ForwardDeclarations.h:
+
 /usr/include/c++/11/bits/stl_construct.h:
 
 /usr/include/c++/11/cassert:
@@ -1870,10 +1879,6 @@ _deps/matplotlib-src/matplotlibcpp.h:
 /usr/include/python3.10/objimpl.h:
 
 /usr/include/eigen3/Eigen/src/Core/TriangularMatrix.h:
-
-/usr/include/sched.h:
-
-/usr/include/c++/11/bits/stl_pair.h:
 
 /usr/include/c++/11/string:
 
@@ -2406,5 +2411,3 @@ _deps/matplotlib-src/matplotlibcpp.h:
 /usr/include/python3.10/pythonrun.h:
 
 /usr/include/python3.10/pythread.h:
-
-/usr/include/python3.10/sliceobject.h:

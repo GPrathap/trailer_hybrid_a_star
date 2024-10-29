@@ -19,6 +19,7 @@ CMakeFiles/hybrid_a_star.dir/src/main.cpp.o
  /home/op/tmp/HybridAStarTrailer/lib_cpp_hybrid_a_star/include/lib_cpp_hybrid_a_star/grid_a_star.hpp
  /home/op/tmp/HybridAStarTrailer/lib_cpp_hybrid_a_star/include/lib_cpp_hybrid_a_star/math_utility.hpp
  /home/op/tmp/HybridAStarTrailer/lib_cpp_hybrid_a_star/include/lib_cpp_hybrid_a_star/rs_paths.hpp
+ /home/op/tmp/HybridAStarTrailer/lib_cpp_hybrid_a_star/include/lib_cpp_hybrid_a_star/trailer_hybrid_a_star.hpp
  /home/op/tmp/HybridAStarTrailer/lib_cpp_hybrid_a_star/include/lib_cpp_hybrid_a_star/trailerlib.hpp
  /home/op/tmp/HybridAStarTrailer/lib_cpp_hybrid_a_star/include/nanoflann.hpp
  /usr/include/alloca.h
