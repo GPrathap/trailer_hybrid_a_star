@@ -43,14 +43,14 @@ namespace rs_paths
         Path path;
         path.ctypes = ctypes;
         path.lengths = lengths;
-        std::cout<< "=================1set_path lengths " << lengths.size() << std::endl;
-        printVector(lengths);
-        std::cout<< "=======1set_path lengths[i]=====" << std::endl;
+        // std::cout<< "=================1set_path lengths " << lengths.size() << std::endl;
+        // printVector(lengths);
+        // std::cout<< "=======1set_path lengths[i]=====" << std::endl;
         // check same path exist
         std::for_each(paths.begin(), paths.end(), [&](Path &tpath) {
-            std::cout<< "=======1set_path ctypes=====" << std::endl;
-            printVector(tpath.ctypes);
-            printVector(path.ctypes);
+            // std::cout<< "=======1set_path ctypes=====" << std::endl;
+            // printVector(tpath.ctypes);
+            // printVector(path.ctypes);
             bool typeissame = (tpath.ctypes == path.ctypes);
             if(typeissame){
                 if (tpath.lengths.size() != path.lengths.size()) {
@@ -61,7 +61,7 @@ namespace rs_paths
                     std::transform(tpath.lengths.begin(), tpath.lengths.end()
                             , path.lengths.begin(), std::back_inserter(result_diff_path), std::minus<>());
                     double sum = std::accumulate(result_diff_path.begin(), result_diff_path.end(), 0.0);
-                    std::cout<< "=======1set_path sum===== " << sum << std::endl;
+                    // std::cout<< "=======1set_path sum===== " << sum << std::endl;
                     if(sum <= 0.01){
                         return;
                     }
@@ -71,7 +71,7 @@ namespace rs_paths
         path.L = std::transform_reduce(path.lengths.begin(), path.lengths.end(), 0.0, std::plus<double>(), 
                     [](double x) { return std::abs(x); });
 
-        std::cout<< "=================1set_path path.L " << path.L << std::endl;
+        // std::cout<< "=================1set_path path.L " << path.L << std::endl;
         paths.push_back(path);
     }
     
@@ -105,7 +105,7 @@ namespace rs_paths
         double t = p_up[0];
         double u = p_up[1];
         double v = p_up[2];
-        std::cout<< "=====1SCS===== " << p.transpose() << " " << p_up.transpose() << " " << flag << std::endl;
+        // std::cout<< "=====1SCS===== " << p.transpose() << " " << p_up.transpose() << " " << flag << std::endl;
         if (flag){
             std::vector<double> lengths = {t, u, v};
             std::vector<std::string> ctypes = {"S","L","S"};
@@ -117,7 +117,7 @@ namespace rs_paths
         double phi = p.z();
         Eigen::Vector3d p_est( x, -y, -phi);
         flag = SLS(p_est, p_up);
-        std::cout<< "=====2SCS===== " << p.transpose() << " " << p_up.transpose() << " " << flag << std::endl;
+        // std::cout<< "=====2SCS===== " << p.transpose() << " " << p_up.transpose() << " " << flag << std::endl;
         if (flag){
             double t = p_up[0];
             double u = p_up[1];
@@ -838,7 +838,7 @@ namespace rs_paths
         CCCC(p_est, paths);
         CCSC(p_est, paths);
         CCSCC(p_est, paths);
-        std::cout<< "==========CCSCC========" << std::endl;
+        // std::cout<< "==========CCSCC========" << std::endl;
         
     }
 
@@ -908,12 +908,12 @@ namespace rs_paths
         Eigen::Vector3d q0 = s;
         Eigen::Vector3d q1 = g;
         generate_path(q0, q1, maxc, paths);
-        std::cout<< "========1calc_paths 0" << std::endl;
+        // std::cout<< "========1calc_paths 0" << std::endl;
         std::for_each(paths.begin(), paths.end(), [&](Path &path) {
             Eigen::MatrixXd poses;
 
             generate_local_course(path.L, path.lengths, path.ctypes, maxc, step_size*maxc, poses);
-            std::cout<< "========1calc_paths 1generate_local_course "<< poses.rows() << std::endl;
+            // std::cout<< "========1calc_paths 1generate_local_course "<< poses.rows() << std::endl;
              // convert global coordinate
             for(int i=0; i<poses.rows(); i++){
                 double ix = poses.row(i)[0];
@@ -928,22 +928,22 @@ namespace rs_paths
             for (int i=0; i< path.lengths.size(); i++){
                 path.lengths[i] = path.lengths[i]/maxc;
             }
-            std::cout<< "========1calc_paths path.lengths" << std::endl;
+            // std::cout<< "========1calc_paths path.lengths" << std::endl;
             path.L = path.L/maxc;
             path.poses = poses;
             // std::cout<< "========1calc_paths path.poses" << poses << std::endl;
         });
-        std::cout<< "========1calc_paths 1" << std::endl;
+        // std::cout<< "========1calc_paths 1" << std::endl;
     }
 
     Path RSPaths::calc_shortest_path(Eigen::Vector3d s, Eigen::Vector3d g, double maxc, double step_size){
         std::vector<Path> paths;
-        std::cout<< "========1calc_shortest_path 1" << std::endl;
+        // std::cout<< "========1calc_shortest_path 1" << std::endl;
         calc_paths(s, g, maxc, paths, step_size);
         double minL = std::numeric_limits<double>::max();
         int best_path_index = 0;
         int index = 0;
-        std::cout<< "========1calc_shortest_path 2" << std::endl;
+        // std::cout<< "========1calc_shortest_path 2" << std::endl;
         std::for_each(paths.begin(), paths.end(), [&](Path &path) {
             if (path.L <= minL){
                 minL = path.L;
@@ -951,7 +951,7 @@ namespace rs_paths
             }
             ++index;
         });
-        std::cout<< "========1calc_shortest_path 3" << std::endl;
+        // std::cout<< "========1calc_shortest_path 3" << std::endl;
         Path tmp;
         return (paths.size() > best_path_index ) ? paths[best_path_index] : tmp;
     }
@@ -961,10 +961,10 @@ namespace rs_paths
         Eigen::Vector3d q0 = s;
         Eigen::Vector3d q1 = g;
         std::vector<Path> paths;
-        std::cout<< "========calc_shortest_path_length 0" << std::endl;
+        // std::cout<< "========calc_shortest_path_length 0" << std::endl;
         generate_path(q0, q1, maxc, paths);
         double minL = std::numeric_limits<double>::max();
-        std::cout<< "========calc_shortest_path_length 1" << std::endl;
+        // std::cout<< "========calc_shortest_path_length 1" << std::endl;
         std::for_each(paths.begin(), paths.end(), [&](Path &path) {
             double L = path.L/maxc;
             if (L <= minL){
@@ -972,7 +972,7 @@ namespace rs_paths
             }
         });
         return minL;
-        std::cout<< "========calc_shortest_path_length 4" << std::endl;
+        // std::cout<< "========calc_shortest_path_length 4" << std::endl;
     }
 
     void RSPaths::calc_curvature(Eigen::MatrixXd& poses, std::vector<double>& c, std::vector<double>& ds){

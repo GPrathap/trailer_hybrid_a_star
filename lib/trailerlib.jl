@@ -227,7 +227,7 @@ function plot_trailer(x::Float64,
                 
     tl_wheel = [TR -TR -TR TR TR;
                 -W/12.0-TW  -W/12.0-TW W/12.0-TW W/12.0-TW -W/12.0-TW]
-    println(" truckOutLine ", truckOutLine)
+    # println(" truckOutLine ", truckOutLine)
     Rot1 = [cos(yaw) sin(yaw);
            -sin(yaw) cos(yaw)]
     Rot2 = [cos(steer) sin(steer);
@@ -246,9 +246,9 @@ function plot_trailer(x::Float64,
     tl_wheel[1,:] = tl_wheel[1,:] .- LT
     tr_wheel = (tr_wheel' * Rot3)'
     tl_wheel = (tl_wheel' * Rot3)'
-    println(" Rot1 ", Rot1)
+    # println(" Rot1 ", Rot1)
     truckOutLine = (truckOutLine' * Rot1)'
-    println(" Rot1*truckOutLine ", truckOutLine)
+    # println(" Rot1*truckOutLine ", truckOutLine)
     trailerOutLine = (trailerOutLine' * Rot3)'
     rr_wheel = (rr_wheel' * Rot1)'
     rl_wheel = (rl_wheel' * Rot1)'

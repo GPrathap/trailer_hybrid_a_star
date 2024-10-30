@@ -51,6 +51,23 @@ struct Node
     pind::Int64 # parent index
 end
 
+function Base.show(io::IO, node::Node)
+    println(io, "Node(")
+    println(io, "  xind: ", node.xind)
+    println(io, "  yind: ", node.yind)
+    println(io, "  yawind: ", node.yawind)
+    println(io, "  direction: ", node.direction ? "forward" : "backward")
+    # println(io, "  x: ", node.x)
+    # println(io, "  y: ", node.y)
+    # println(io, "  yaw: ", node.yaw)
+    # println(io, "  yaw1: ", node.yaw1)
+    # println(io, "  directions: ", node.directions)
+    println(io, "  steer: ", node.steer)
+    println(io, "  cost: ", node.cost)
+    println(io, "  pind: ", node.pind)
+    print(io, ")")
+end
+
 struct Config # config struct for hybrid A* DB
     minx::Int64
     miny::Int64
@@ -99,11 +116,15 @@ function calc_hybrid_astar_path(sx::Float64, sy::Float64, syaw::Float64, syaw1::
     ox, oy = ox[:], oy[:]
 
     kdtree = KDTree(hcat(ox, oy)')
-
+    # println(" ==========s=== ", sx, sy, syaw, syaw1, xyreso, yawreso);
+    # println(" ==========g=== ", gx, gy, gyaw, gyaw1, xyreso, yawreso);
+            
     c = calc_config(ox, oy, xyreso, yawreso)
     nstart = Node(round(Int64,sx/xyreso), round(Int64,sy/xyreso), round(Int64, syaw/yawreso),true,[sx],[sy],[syaw],[syaw1],[true],0.0,0.0, -1)
     ngoal = Node(round(Int64,gx/xyreso), round(Int64,gy/xyreso), round(Int64,gyaw/yawreso),true,[gx],[gy],[gyaw],[gyaw1],[true],0.0,0.0, -1)
-
+    
+    # println("nstart: ", nstart);
+    # println("ngoal: ", nstart);
     h_dp = calc_holonomic_with_obstacle_heuristic(ngoal, ox, oy, xyreso)
 
     open, closed = Dict{Int64, Node}(), Dict{Int64, Node}()
@@ -114,7 +135,9 @@ function calc_hybrid_astar_path(sx::Float64, sy::Float64, syaw::Float64, syaw1::
 
     u, d = calc_motion_inputs()
     nmotion = length(u)
-
+    # println("u d ", nmotion,  " " , length(d));
+    # println(u);
+    # println(d);
     while true
         if length(open) == 0
             println("Error: Cannot find path, No open set")
@@ -127,35 +150,41 @@ function calc_hybrid_astar_path(sx::Float64, sy::Float64, syaw::Float64, syaw1::
         #move current node from open to closed
         delete!(open, c_id)
         closed[c_id] = current
-
+        println(" c_id ", c_id)
+        println(" current ", current)
+        println(" ngoal ", ngoal)
+        println(" gyaw1 ", gyaw1)
         isupdated, fpath = update_node_with_analystic_expantion(current, ngoal, c, ox, oy, kdtree, gyaw1)
-        if isupdated # found
-            fnode = fpath
-            break
-        end
+        println(" isupdated ", isupdated)
+        println(" fpath ", fpath)
+        break
+        # if isupdated # found
+        #     fnode = fpath
+        #     break
+        # end
 
-        inityaw1 = current.yaw1[1]
+        # inityaw1 = current.yaw1[1]
 
-        for i in 1:nmotion
-            node = calc_next_node(current, c_id, u[i], d[i], c)
+        # for i in 1:nmotion
+        #     node = calc_next_node(current, c_id, u[i], d[i], c)
 
-            if !verify_index(node, c, ox, oy, inityaw1, kdtree) continue end
+        #     if !verify_index(node, c, ox, oy, inityaw1, kdtree) continue end
 
-            node_ind = calc_index(node, c)
+        #     node_ind = calc_index(node, c)
 
-            # If it is already in the closed set, skip it
-            if haskey(closed, node_ind)  continue end
+        #     # If it is already in the closed set, skip it
+        #     if haskey(closed, node_ind)  continue end
 
-            if !haskey(open, node_ind)
-                open[node_ind] = node
-                enqueue!(pq, node_ind, calc_cost(node, h_dp, ngoal, c))
-            else
-                if open[node_ind].cost > node.cost
-                    # If so, update the node to have a new parent
-                    open[node_ind] = node
-                end
-            end
-        end
+        #     if !haskey(open, node_ind)
+        #         open[node_ind] = node
+        #         enqueue!(pq, node_ind, calc_cost(node, h_dp, ngoal, c))
+        #     else
+        #         if open[node_ind].cost > node.cost
+        #             # If so, update the node to have a new parent
+        #             open[node_ind] = node
+        #         end
+        #     end
+        # end
     end
 
     println("final expand node:", length(open) + length(closed))
@@ -265,16 +294,20 @@ function analystic_expantion(n::Node, ngoal::Node, c::Config, ox, oy, kdtree)
     max_curvature = tan(MAX_STEER)/WB
     paths = rs_path.calc_paths(sx,sy,syaw,ngoal.x[end], ngoal.y[end], ngoal.yaw[end],
                                    max_curvature, step_size=MOTION_RESOLUTION)
-
+    println(" 1analystic_expantion 1")
     if length(paths) == 0 
         return nothing
     end
+
+    println(" 1analystic_expantion paths ", length(paths));
 
     pathqueue = PriorityQueue{rs_path.Path, Float64}()
     for path in paths
         steps = MOTION_RESOLUTION*path.directions
         yaw1 = trailerlib.calc_trailer_yaw_from_xyyaw(path.x, path.y, path.yaw, n.yaw1[end], steps)
-        enqueue!(pathqueue, path, calc_rs_path_cost(path, yaw1))
+        cost = calc_rs_path_cost(path, yaw1)
+        enqueue!(pathqueue, path, cost)
+        println(" 1analystic_expantion path.cost ", cost);
     end
 
     for i in length(pathqueue)
@@ -288,6 +321,7 @@ function analystic_expantion(n::Node, ngoal::Node, c::Config, ox, oy, kdtree)
             return path # path is ok
         end
     end
+    println(" 1analystic_expantion 2")
 
     return nothing
 end
@@ -577,7 +611,7 @@ function main()
             if !direction[ii]
                 k *= -1
             end
-            steer = Base.atan2(WB*k, 1.0)
+            steer = Base.atan(WB*k, 1.0)
         else
             steer = 0.0
         end
@@ -641,57 +675,57 @@ function test()
 
     @time path = calc_hybrid_astar_path(sx, sy, syaw0, syaw1, gx, gy, gyaw0, gyaw1, ox, oy, XY_GRID_RESOLUTION, YAW_GRID_RESOLUTION)
 
-    # Base.Test.@test length(path.x)>=1
+    # # Base.Test.@test length(path.x)>=1
 
-    sx = 14.0  # [m]
-    sy = 10.0  # [m]
-    syaw0 = deg2rad(00.0)
-    syaw1 = deg2rad(00.0)
+    # sx = 14.0  # [m]
+    # sy = 10.0  # [m]
+    # syaw0 = deg2rad(00.0)
+    # syaw1 = deg2rad(00.0)
 
-    @time path = calc_hybrid_astar_path(sx, sy, syaw0, syaw1, gx, gy, gyaw0, gyaw1, ox, oy, XY_GRID_RESOLUTION, YAW_GRID_RESOLUTION)
+    # @time path = calc_hybrid_astar_path(sx, sy, syaw0, syaw1, gx, gy, gyaw0, gyaw1, ox, oy, XY_GRID_RESOLUTION, YAW_GRID_RESOLUTION)
 
-    # Base.Test.@test length(path.x)>=1
+    # # Base.Test.@test length(path.x)>=1
 
-    sx = -14.0  # [m]
-    sy = 12.0  # [m]
-    syaw0 = deg2rad(00.0)
-    syaw1 = deg2rad(00.0)
-    @time path = calc_hybrid_astar_path(sx, sy, syaw0, syaw1, gx, gy, gyaw0, gyaw1, ox, oy, XY_GRID_RESOLUTION, YAW_GRID_RESOLUTION)
+    # sx = -14.0  # [m]
+    # sy = 12.0  # [m]
+    # syaw0 = deg2rad(00.0)
+    # syaw1 = deg2rad(00.0)
+    # @time path = calc_hybrid_astar_path(sx, sy, syaw0, syaw1, gx, gy, gyaw0, gyaw1, ox, oy, XY_GRID_RESOLUTION, YAW_GRID_RESOLUTION)
 
-    # Base.Test.@test length(path.x)>=1
+    # # Base.Test.@test length(path.x)>=1
 
-    sx = -20.0  # [m]
-    sy = 6.0  # [m]
-    syaw0 = deg2rad(00.0)
-    syaw1 = deg2rad(00.0)
-    @time path = calc_hybrid_astar_path(sx, sy, syaw0, syaw1, gx, gy, gyaw0, gyaw1, ox, oy, XY_GRID_RESOLUTION, YAW_GRID_RESOLUTION)
+    # sx = -20.0  # [m]
+    # sy = 6.0  # [m]
+    # syaw0 = deg2rad(00.0)
+    # syaw1 = deg2rad(00.0)
+    # @time path = calc_hybrid_astar_path(sx, sy, syaw0, syaw1, gx, gy, gyaw0, gyaw1, ox, oy, XY_GRID_RESOLUTION, YAW_GRID_RESOLUTION)
 
-    # Base.Test.@test length(path.x)>=1
+    # # Base.Test.@test length(path.x)>=1
 
-    sx = -14.0  # [m]
-    sy = 12.0  # [m]
-    syaw0 = deg2rad(00.0)
-    syaw1 = deg2rad(00.0)
-    path = calc_hybrid_astar_path(sx, sy, syaw0, syaw1, gx, gy, gyaw0, gyaw1, ox, oy, XY_GRID_RESOLUTION, YAW_GRID_RESOLUTION)
+    # sx = -14.0  # [m]
+    # sy = 12.0  # [m]
+    # syaw0 = deg2rad(00.0)
+    # syaw1 = deg2rad(00.0)
+    # path = calc_hybrid_astar_path(sx, sy, syaw0, syaw1, gx, gy, gyaw0, gyaw1, ox, oy, XY_GRID_RESOLUTION, YAW_GRID_RESOLUTION)
 
-    # Base.Test.@test length(path.x)>=1
+    # # Base.Test.@test length(path.x)>=1
 
-    sx = -20.0  # [m]
-    sy = 6.0  # [m]
-    syaw0 = deg2rad(180.0)
-    syaw1 = deg2rad(180.0)
-    @time path = calc_hybrid_astar_path(sx, sy, syaw0, syaw1, gx, gy, gyaw0, gyaw1, ox, oy, XY_GRID_RESOLUTION, YAW_GRID_RESOLUTION)
+    # sx = -20.0  # [m]
+    # sy = 6.0  # [m]
+    # syaw0 = deg2rad(180.0)
+    # syaw1 = deg2rad(180.0)
+    # @time path = calc_hybrid_astar_path(sx, sy, syaw0, syaw1, gx, gy, gyaw0, gyaw1, ox, oy, XY_GRID_RESOLUTION, YAW_GRID_RESOLUTION)
 
-    # Base.Test.@test length(path.x)>=1
+    # # Base.Test.@test length(path.x)>=1
 
-    sx = -20.0  # [m]
-    sy = 12.0  # [m]
-    syaw0 = deg2rad(180.0)
-    syaw1 = deg2rad(180.0)
+    # sx = -20.0  # [m]
+    # sy = 12.0  # [m]
+    # syaw0 = deg2rad(180.0)
+    # syaw1 = deg2rad(180.0)
 
-    @time path = calc_hybrid_astar_path(sx, sy, syaw0, syaw1, gx, gy, gyaw0, gyaw1, ox, oy, XY_GRID_RESOLUTION, YAW_GRID_RESOLUTION)
+    # @time path = calc_hybrid_astar_path(sx, sy, syaw0, syaw1, gx, gy, gyaw0, gyaw1, ox, oy, XY_GRID_RESOLUTION, YAW_GRID_RESOLUTION)
 
-    # Base.Test.@test length(path.x)>=1
+    # # Base.Test.@test length(path.x)>=1
 
     println("Test Done !!!")
 end

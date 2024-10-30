@@ -188,15 +188,15 @@ function set_path(paths::Array{Path}, lengths::Array{Float64}, ctypes::Array{Str
     path = Path([],[],0.0,[],[],[],[])
     path.ctypes = ctypes
     path.lengths = lengths
-    println("  path.lengths ,", path.lengths)
+    # println("  path.lengths ,", path.lengths)
     # check same path exist
     for tpath in paths
         typeissame = (tpath.ctypes == path.ctypes)
-        println("  tpath.ctypes ,", tpath.ctypes)
-        println("  path.ctypes ,", path.ctypes)
+        # println("  tpath.ctypes ,", tpath.ctypes)
+        # println("  path.ctypes ,", path.ctypes)
         if typeissame
             sub_t = sum(tpath.lengths - path.lengths)
-            println(" sub_t ,", sub_t)
+            # println(" sub_t ,", sub_t)
             if sub_t <= 0.01
                 return paths # not insert path
             end
@@ -207,7 +207,7 @@ function set_path(paths::Array{Path}, lengths::Array{Float64}, ctypes::Array{Str
 
     # Base.Test.@test path.L >= 0.01
 
-    println("  path.L ,", path.L)
+    # println("  path.L ,", path.L)
 
     push!(paths, path)
 
@@ -217,12 +217,12 @@ end
 
 function SCS(x::Float64, y::Float64, phi::Float64, paths::Array{Path})::Array{Path}
     flag, t, u, v = SLS(x, y, phi) 
-    println(x, "  -----SLS1---- ,", y,",", phi,",",t,",",u,",", v, "  ", flag)
+    # println(x, "  -----SLS1---- ,", y,",", phi,",",t,",",u,",", v, "  ", flag)
     if flag
         paths = set_path(paths, [t, u, v], ["S","L","S"])
     end
     flag, t, u, v = SLS(x, -y, -phi) 
-    println(x, "  -----SLS2---- ,", y,",", phi,",",t,",",u,",", v, "  ", flag)
+    # println(x, "  -----SLS2---- ,", y,",", phi,",",t,",",u,",", v, "  ", flag)
     if flag
         paths = set_path(paths, [t, u, v], ["S","R","S"])
     end

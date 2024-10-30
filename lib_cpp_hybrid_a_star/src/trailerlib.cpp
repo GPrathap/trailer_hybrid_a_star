@@ -48,6 +48,7 @@ namespace planning
                         , const std::vector<double> vrx, const std::vector<double> vry){
         
         double radius = wbr;
+        return true;
         for(int i=0; i<poses.rows(); i++){
             Eigen::VectorXd next_pose = poses.row(i);
             double cx = next_pose[0] + wbd*cos(next_pose[2]);
@@ -82,10 +83,22 @@ namespace planning
     void TrailerLib::calc_trailer_yaw_from_xyyaw(Eigen::MatrixXd& poses, const double init_tyaw
                                                         , Eigen::VectorXd& steps, Eigen::VectorXd& yaws){
         Eigen::VectorXd yaw = poses.col(2);
+        // std::cout<< " yaw_from_xyyaw " << yaw.transpose() << std::endl;
         yaws.resize(yaw.size());
         yaws[0] = init_tyaw;
         for(int i=1; i<yaws.size(); i++){
-            yaws[i] += yaws[i-1] + steps[i-1]/(VehicleParams::LT*sin(yaw[i-1] - yaws[i-1]));
+            double steps_d =  steps[i-1];
+            double delta_theta = (VehicleParams::LT*sin(yaw[i-1] - yaws[i-1]));
+            if(delta_theta < 0.00001){
+                yaws[i] += yaws[i-1];
+            }else{
+                yaws[i] += yaws[i-1] + steps_d/delta_theta;
+            }
+            // std::cout<< " yaw_from_xyyaw " << yaw[i-1] << " " << yaws[i-1] << " " << delta_theta << std::endl;
+            if(std::isnan(delta_theta)){
+                std::cout<< " yaw_from_xyyaw " << yaw[i-1] << " " << yaws[i-1] << " " << VehicleParams::LT << std::endl;
+            }
+            
         }
     } 
 

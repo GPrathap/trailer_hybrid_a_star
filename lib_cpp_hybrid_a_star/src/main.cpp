@@ -11,7 +11,7 @@ namespace plt = matplotlibcpp;
 
 int main(int arc, char *argv[]){
 
-    Eigen::Vector4d s(-10.0, 6.0, math_utility::deg2rad(0.0), math_utility::deg2rad(0.0));
+    Eigen::Vector4d s(14.0, 10.0, math_utility::deg2rad(0.0), math_utility::deg2rad(0.0));
     Eigen::Vector4d g(0.0, 0.0, math_utility::deg2rad(90.0), math_utility::deg2rad(90.0));
     
     Eigen::MatrixXd obss(138, 2);

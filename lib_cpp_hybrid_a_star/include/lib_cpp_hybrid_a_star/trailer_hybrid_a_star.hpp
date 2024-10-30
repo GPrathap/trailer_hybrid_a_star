@@ -71,7 +71,31 @@ namespace planning
                     : xind(xind_), yind(yind_), yawind(yawind_), 
                     direction(direction_), poses(poses_), steer(steer_), cost(cost_), pind(pind_) 
                 {};
+
+        friend std::ostream& operator<<(std::ostream& os, const HybridNode& node) {
+            os << "HybridNode("
+            << "xind: " << node.xind << ", "
+            << "yind: " << node.yind << ", "
+            << "yawind: " << node.yawind << ", "
+            << "direction: " << (node.direction ? "forward" : "backward") << ",\n"
+            // << "poses:\n" << node.poses << ",\n"
+            << "steer: " << node.steer << ", "
+            << "cost: " << node.cost << ", "
+            << "pind: " << node.pind
+            << ")";
+            return os;
+        }
     };
+
+    template <typename T>
+    void print_vec(const std::vector<T>& vec) {
+        std::cout << "[ ";
+        for (const auto& elem : vec) {
+            std::cout << elem << " ";
+        }
+        std::cout << "]" << std::endl;
+    }
+
 
     typedef struct Config{
         int minx;

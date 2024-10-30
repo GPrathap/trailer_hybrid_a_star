@@ -61,7 +61,7 @@ namespace planning
     void TrailerHybridAStar::calc_motion_inputs(std::vector<double>& u, std::vector<double>& d){
         std::vector<double> up;
         double increment = PlannerParams::MAX_STEER/PlannerParams::N_STEER;
-        for (double i = increment; i <= PlannerParams::MAX_STEER; i += increment) {
+        for (double i=increment; i <= PlannerParams::MAX_STEER+0.002; i+=increment) {
             up.push_back(i);
         }
         u.clear();
@@ -89,18 +89,21 @@ namespace planning
             double l = rspath.lengths[i];
             cost += (rspath.lengths[i] >= 0) ? l : std::abs(l) * PlannerParams::BACK_COST;
         }
+        // std::cout<< " 1cost " << cost << std::endl;
         // swich back penalty
         for(int i=0; i<rspath.lengths.size()-1; i++){
             if(rspath.lengths[i] * rspath.lengths[i+1] < 0.0){
                 cost += PlannerParams::SB_COST;
             }
         }
+        // std::cout<< " 2cost " << cost << std::endl;
         // steer penalyty
         for(int i=0; i<rspath.ctypes.size(); i++){
             if(rspath.ctypes[i] != "S"){
                 cost += PlannerParams::STEER_COST*std::abs(PlannerParams::MAX_STEER);
             }
         }
+        // std::cout<< " 3cost " << cost << std::endl;
         // steer change penalty
         // calc steer profile
         int nctypes = rspath.ctypes.size();
@@ -112,9 +115,13 @@ namespace planning
                 ulist[i] = PlannerParams::MAX_STEER;
             }
         }
+        // std::cout<< " 4cost " << cost << std::endl;
         for(int i=0; i<rspath.ctypes.size()-1; i++){
             cost += PlannerParams::STEER_CHANGE_COST*std::abs(ulist[i+1] - ulist[i]);
         }
+
+        // std::cout<< " 4cost yaw1 " << rspath.poses.col(2).transpose() << std::endl;
+        // std::cout<< " 4cost yaw1 " << yaw1.transpose() << std::endl;
 
         Eigen::VectorXd yaw_diff = rspath.poses.col(2) - yaw1;
 
@@ -123,13 +130,15 @@ namespace planning
             return pi_to_pi(x);
         });
 
+        // std::cout<< " 5cost " << wrapped_yaw_diff.transpose() << std::endl;
         // calculate the absolute values
         Eigen::VectorXd abs_yaw_diff = wrapped_yaw_diff.array().abs();
 
         // sum the absolute values
         double sum_abs_yaw_diff = abs_yaw_diff.sum();
-
+        // std::cout<< " 6cost " << cost << " " << sum_abs_yaw_diff << std::endl;
         cost += PlannerParams::JACKKNIF_COST * sum_abs_yaw_diff;
+        return cost;
     }
 
     bool TrailerHybridAStar::update_node_with_analystic_expantion(HybridNode& current
@@ -218,6 +227,8 @@ namespace planning
             kdtree.buildIndex();
             calc_config(obses, xyreso, yawreso);
             
+            std::cout<< " ==========s=== "<< s.transpose() << " " << xyreso << std::endl;
+            std::cout<< " ==========g=== "<< g.transpose() << " " << xyreso  << " " << yawreso << std::endl;
             int xind_s = std::round(s[0]/xyreso);
             int yind_s = std::round(s[1]/xyreso);
             int yawind_s = std::round(s[2]/yawreso);
@@ -234,6 +245,9 @@ namespace planning
             HybridNode nstart(xind_s, yind_s, yawind_s, true, poses_s, 0.0, 0.0, -1);
             HybridNode ngoal(xind_g, yind_g, yawind_g, true, poses_g, 0.0, 0.0, -1);
             calc_holonomic_with_obstacle_heuristic(ngoal, obses, xyreso);
+
+            // std::cout<< "nstart: " << nstart << std::endl;
+            // std::cout<< "ngoal: " << nstart << std::endl;
             
             std::unordered_map<int, HybridNode*> open;
             std::unordered_map<int, HybridNode*> closed;
@@ -250,7 +264,10 @@ namespace planning
 
             int nmotion = u.size();
             HybridNode fnode;
-
+            // std::cout<< "   u  d " << nmotion << " " << d.size() << std::endl;
+            // print_vec(u);
+            // print_vec(d);
+            std::cout<< "   ============================== " << std::endl;
             while (true){
                 if(open.empty()){
                     std::cout<< "Error: Cannot find path, No open set" << std::endl;
@@ -274,8 +291,16 @@ namespace planning
                 open.erase(c_id);
                 closed[c_id] = current;
                 HybridNode fpath;
-
+                std::cout << " c_id " << c_id << std::endl; 
+                std::cout << " current " << *current << std::endl; 
+                std::cout << " ngoal " << ngoal << std::endl; 
+                std::cout << " gyaw1 " << g[3] << std::endl; 
+                 
+                
                 bool isupdated = update_node_with_analystic_expantion(*current, ngoal, obses, kdtree, g[3], fpath);
+                std::cout << " isupdated " << isupdated << std::endl;
+                std::cout << " fpath " << fpath << std::endl;
+
                 if (isupdated){
                     fnode = fpath;
                     break;
@@ -324,9 +349,11 @@ namespace planning
         rs_path_.calc_paths(current_pose.head(3), target_pose.head(3)
                             , max_curvature, paths, PlannerParams::MOTION_RESOLUTION);
 
+        std::cout << " 1analystic_expantion 1" << std::endl;
         if(paths.size() == 0){
             return false;
         }
+        std::cout << " 1analystic_expantion paths "<< paths.size() << std::endl;
 
         std::priority_queue<rs_paths::Path, std::vector<rs_paths::Path>, rs_paths::CompareNode> pathqueue;
         
@@ -334,8 +361,11 @@ namespace planning
         for(auto path : paths){
             Eigen::VectorXd steps = path.poses.col(3).array()*PlannerParams::MOTION_RESOLUTION;
             Eigen::VectorXd yaw1;
+            // std::cout <<  "======d 1" << std::endl;
             trailerlib_.calc_trailer_yaw_from_xyyaw(path.poses, current_pose[3], steps, yaw1);
+            // std::cout <<  "======d 2" << std::endl;
             path.cost = calc_rs_path_cost(path, yaw1);
+            std::cout << " 1analystic_expantion path.cost "<< path.cost << std::endl;
             pathqueue.push(path);
         }
 
@@ -361,6 +391,7 @@ namespace planning
                 return true;
             }
         } 
+        std::cout << " 1analystic_expantion 2" << std::endl;
         return false;       
     }
 
