@@ -119,25 +119,27 @@ namespace planning
         for(int i=0; i<rspath.ctypes.size()-1; i++){
             cost += PlannerParams::STEER_CHANGE_COST*std::abs(ulist[i+1] - ulist[i]);
         }
-
+        // std::cout<< " 5cost " << cost << std::endl;
         // std::cout<< " 4cost yaw1 " << rspath.poses.col(2).transpose() << std::endl;
         // std::cout<< " 4cost yaw1 " << yaw1.transpose() << std::endl;
 
         Eigen::VectorXd yaw_diff = rspath.poses.col(2) - yaw1;
 
         // wrap the differences to the range [-π, π]
+        // std::cout<< " 5cost " << yaw_diff.transpose() << std::endl;
+        // std::cout<< " rspath.poses.col(2) " << rspath.poses.col(2) << std::endl;
+        // std::cout<< " rspath.poses.col(2) " << yaw1.col(2) << std::endl;
         Eigen::VectorXd wrapped_yaw_diff = yaw_diff.unaryExpr([](double x) {
             return pi_to_pi(x);
         });
 
-        // std::cout<< " 5cost " << wrapped_yaw_diff.transpose() << std::endl;
         // calculate the absolute values
         Eigen::VectorXd abs_yaw_diff = wrapped_yaw_diff.array().abs();
 
         // sum the absolute values
         double sum_abs_yaw_diff = abs_yaw_diff.sum();
-        // std::cout<< " 6cost " << cost << " " << sum_abs_yaw_diff << std::endl;
         cost += PlannerParams::JACKKNIF_COST * sum_abs_yaw_diff;
+        // std::cout<< " 6cost " << cost << " " << sum_abs_yaw_diff << std::endl;
         return cost;
     }
 
@@ -146,17 +148,23 @@ namespace planning
                 , double gyaw1, HybridNode& updated_node){
             
             rs_paths::Path apath;
+            
             bool find_path = analystic_expantion(current, ngoal, obses, kdtree, apath);
+            // std::cout<< "----analystic_expantion---- " << find_path << std::endl;
             if(find_path){
                 Eigen::VectorXd steps = apath.poses.col(3).array()*PlannerParams::MOTION_RESOLUTION;
                 Eigen::VectorXd current_pose = current.poses.row(current.poses.rows()-1);
                 Eigen::VectorXd yaw1;
-                trailerlib_.calc_trailer_yaw_from_xyyaw(apath.poses, current_pose[4], steps, yaw1);
+                bool can_estimate = trailerlib_.calc_trailer_yaw_from_xyyaw(apath.poses, current_pose[4], steps, yaw1);
+                if(!can_estimate){
+                    return false;
+                }
                 if (std::abs(math_utility::pi_to_pi(yaw1[yaw1.size()-1] - gyaw1)) >= PlannerParams::GOAL_TYAW_TH){
                     return false;
                 }
                 double fcost = current.cost + calc_rs_path_cost(apath, yaw1);
                 int fpind = calc_index(current);
+                // std::cout<< "----analystic_expantion---- fcost " << fcost << std::endl;
                 
                 // to get rows from index 1 to the end (2nd to last rows)
                 Eigen::MatrixXd updated_poses = apath.poses.block(1, 0, apath.poses.rows() - 1, apath.poses.cols());
@@ -180,7 +188,13 @@ namespace planning
         ref_path.push_back(g_poses);
         int total_rows = g_poses.rows();
         int total_cols = g_poses.cols();
+        std::cout<< "Final path info " << total_cols << " " << total_rows << std::endl;
+        
         while(true){
+            if (closed.find(nid) != closed.end()) {
+                std::cout<< nid << " cant find the requested node" << std::endl;
+                break;
+            }
             HybridNode* n = closed[nid];
             Eigen::MatrixXd n_poses = n->poses.colwise().reverse();
             ref_path.push_back(n_poses);
@@ -200,12 +214,19 @@ namespace planning
 
         // adjuct first direction
         // direction[1] = direction[2];
-        final_path.row(0)[4] = final_path.row(1)[4];
-        HybridPath path_final(final_path, finalcost);
-        path = path_final;
+        if(final_path.rows()>2 && final_path.cols() > 3 ){
+            final_path.row(0)[3] = final_path.row(1)[3];
+            HybridPath path_final(final_path, finalcost);
+            path = path_final;
+        }else{
+            std::cout << "Path can not be found..." << std::endl;
+        }
+        
     }
 
     double TrailerHybridAStar::calc_cost(HybridNode& n, HybridNode& ngoal){
+        // std::cout<< h_dp << std::endl;
+        std::cout<< " ngoal.cost " << ngoal.cost << " hp " << h_dp(n.xind - config_.minx, n.yind - config_.miny) << std::endl;
         return ngoal.cost + PlannerParams::H_COST*h_dp(n.xind - config_.minx, n.yind - config_.miny);
     }
 
@@ -293,40 +314,47 @@ namespace planning
                 HybridNode fpath;
                 std::cout << " c_id " << c_id << std::endl; 
                 std::cout << " current " << *current << std::endl; 
-                std::cout << " ngoal " << ngoal << std::endl; 
-                std::cout << " gyaw1 " << g[3] << std::endl; 
+                // std::cout << " ngoal " << ngoal << std::endl; 
+                // std::cout << " gyaw1 " << g[3] << std::endl; 
                  
                 
                 bool isupdated = update_node_with_analystic_expantion(*current, ngoal, obses, kdtree, g[3], fpath);
-                std::cout << " isupdated " << isupdated << std::endl;
-                std::cout << " fpath " << fpath << std::endl;
-
+                // std::cout << " isupdated " << isupdated << std::endl;
+                // std::cout << " fpath " << fpath << std::endl;
+                // break;
                 if (isupdated){
                     fnode = fpath;
                     break;
                 }
                 double inityaw1 = current->poses.row(0)[3];
+                std::cout<< " --------------------------------- " << std::endl;
                 for(int i=0; i<nmotion; i++){
                     HybridNode node = calc_next_node(*current, c_id, u[i], d[i]);
                     if (!verify_index(node, obses, inityaw1, kdtree)){
                         continue;
                     }
                     int node_ind = calc_index(node);
+                    std::cout<< " node_ind " << node_ind << std::endl;
                     //  If it is already in the closed set, skip it
                     if (closed.find(node_ind) != closed.end()) {
                         continue;
                     }
                     if (open.find(node_ind) == open.end()) {
                         open[node_ind] = &node;
-                        CostNode cost_node(calc_cost(node, ngoal), node_ind);
+                        double cost = calc_cost(node, ngoal);
+                        std::cout<< " node_ind " << node_ind << " cost " << cost << std::endl;
+                        break;
+                        CostNode cost_node(cost, node_ind);
                         pq.push(cost_node);
                     }else{
                         if(open[node_ind]->cost > node.cost){
                             // If so, update the node to have a new parent
+                            std::cout<< " open[node_ind]->cost " << open[node_ind]->cost << " " << node.cost << std::endl;
                             open[node_ind] = &node;
                         }
                     }
                 }
+                std::cout<< " -------------------end-------------- " << std::endl;
             }
             std::cout<< "final expand node:" << open.size() + closed.size() << std::endl;
             get_final_path(closed, fnode, nstart, path);
@@ -349,7 +377,7 @@ namespace planning
         rs_path_.calc_paths(current_pose.head(3), target_pose.head(3)
                             , max_curvature, paths, PlannerParams::MOTION_RESOLUTION);
 
-        std::cout << " 1analystic_expantion 1" << std::endl;
+        std::cout << " 1analystic_expantion paths.size() "<< paths.size() << std::endl;
         if(paths.size() == 0){
             return false;
         }
@@ -362,7 +390,10 @@ namespace planning
             Eigen::VectorXd steps = path.poses.col(3).array()*PlannerParams::MOTION_RESOLUTION;
             Eigen::VectorXd yaw1;
             // std::cout <<  "======d 1" << std::endl;
-            trailerlib_.calc_trailer_yaw_from_xyyaw(path.poses, current_pose[3], steps, yaw1);
+            bool can_estimate = trailerlib_.calc_trailer_yaw_from_xyyaw(path.poses, current_pose[3], steps, yaw1);
+            if(!can_estimate){
+                return false;
+            }
             // std::cout <<  "======d 2" << std::endl;
             path.cost = calc_rs_path_cost(path, yaw1);
             std::cout << " 1analystic_expantion path.cost "<< path.cost << std::endl;
@@ -375,7 +406,10 @@ namespace planning
 
             Eigen::VectorXd steps = path.poses.col(3).array()*PlannerParams::MOTION_RESOLUTION;
             Eigen::VectorXd yaws1;
-            trailerlib_.calc_trailer_yaw_from_xyyaw(node.poses, current_pose[3], steps, yaws1);
+            bool can_estimate = trailerlib_.calc_trailer_yaw_from_xyyaw(node.poses, current_pose[3], steps, yaws1);
+            if(!can_estimate){
+                return false;
+            }
             std::vector<int> indices;
             for(int i=0; i<node.poses.rows(); i+=PlannerParams::SKIP_COLLISION_CHECK){
                 indices.push_back(i);
@@ -387,6 +421,7 @@ namespace planning
             }
 
             if (trailerlib_.check_trailer_collision(obses, selected_poses, kdtree)){
+                std::cout << " 1analystic_expantion check_trailer_collision find path " << std::endl;
                 selected_path = path;
                 return true;
             }
@@ -425,7 +460,10 @@ namespace planning
          // check collisiton
         Eigen::VectorXd steps = node.poses.col(4).array()*PlannerParams::MOTION_RESOLUTION;
         Eigen::VectorXd yaws1;
-        trailerlib_.calc_trailer_yaw_from_xyyaw(node.poses, inityaw1, steps, yaws1);
+        bool can_estimate = trailerlib_.calc_trailer_yaw_from_xyyaw(node.poses, inityaw1, steps, yaws1);
+        if(!can_estimate){
+                return false;
+        }
         std::vector<int> indices;
         for(int i=0; i<node.poses.rows(); i+=PlannerParams::SKIP_COLLISION_CHECK){
             indices.push_back(i);
@@ -449,6 +487,8 @@ namespace planning
         int nlist = std::floor(arc_l/PlannerParams::MOTION_RESOLUTION) + 1;
         Eigen::MatrixXd poses(nlist, 5);
         Eigen::VectorXd current_pose = current.poses.row(current.poses.rows()-1);
+        
+        // std::cout<< " current pose " << current.poses << " nlist " << nlist << std::endl;
         if( nlist >0 ){
             poses.row(0)[0] = current_pose.x() + d * PlannerParams::MOTION_RESOLUTION*cos(current_pose[2]);
             poses.row(0)[1] = current_pose.y() + d * PlannerParams::MOTION_RESOLUTION*sin(current_pose[2]);
@@ -468,9 +508,15 @@ namespace planning
             poses.row(i+1)[3] = math_utility::pi_to_pi(poses.row(i)[3] 
                                 + d*PlannerParams::MOTION_RESOLUTION/PlannerParams::LT*sin(poses.row(i)[2]-poses.row(i)[3]));
         }
-        int xind = std::round(current_pose[0]/config_.xyreso);
-        int yind = std::round(current_pose[1]/config_.xyreso);
-        int yawind = std::round(current_pose[2]/config_.yawreso);
+
+        Eigen::VectorXd updated_pose = poses.row(poses.rows()-1);
+        // std::cout<< " cpose " << poses << std::endl;
+        int xind = std::round(updated_pose[0]/config_.xyreso);
+        int yind = std::round(updated_pose[1]/config_.xyreso);
+        int yawind = std::round(updated_pose[2]/config_.yawreso);
+        
+        // std::cout<< " xind " << xind << " yind " << yind << " yawind " << yawind << std::endl;
+
         double addedcost = 0.0;
         double direction = 1.0;
         if (d > 0){

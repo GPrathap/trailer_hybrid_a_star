@@ -94,18 +94,18 @@ namespace grid_search
         pq.push(cost_goal);
         while( true ){
             if(open.empty()){
-                std::cerr << " Error: No open set " << std::endl;
+                std::cerr << " Finish Search " << std::endl;
                 break;
             }
             CostNode next_node = pq.top();
             pq.pop();
             int c_id = next_node.id;
             Node* current = open[c_id];
-            if( (current->pose.x() == ngoal.pose.x())&& (current->pose.y() == ngoal.pose.y())){
-                std::cout << " Goal!! " << std::endl;
-                closed[c_id] = current;
-                break;
-            }
+            // if( (current->pose.x() == ngoal.pose.x())&& (current->pose.y() == ngoal.pose.y())){
+            //     std::cout << " Goal!! " << std::endl;
+            //     closed[c_id] = current;
+            //     break;
+            // }
             open.erase(c_id);
             closed[c_id] = current;
             for(int i=0; i<nmotion; i++){
@@ -130,6 +130,8 @@ namespace grid_search
                 }
             }
         }
+
+        std::cout<< " closed size " << closed.size() << std::endl;
         calc_policy_map(closed, pmap);
     }
 

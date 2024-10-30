@@ -80,7 +80,7 @@ namespace planning
         return true;
     }
 
-    void TrailerLib::calc_trailer_yaw_from_xyyaw(Eigen::MatrixXd& poses, const double init_tyaw
+    bool TrailerLib::calc_trailer_yaw_from_xyyaw(Eigen::MatrixXd& poses, const double init_tyaw
                                                         , Eigen::VectorXd& steps, Eigen::VectorXd& yaws){
         Eigen::VectorXd yaw = poses.col(2);
         // std::cout<< " yaw_from_xyyaw " << yaw.transpose() << std::endl;
@@ -88,18 +88,15 @@ namespace planning
         yaws[0] = init_tyaw;
         for(int i=1; i<yaws.size(); i++){
             double steps_d =  steps[i-1];
-            double delta_theta = (VehicleParams::LT*sin(yaw[i-1] - yaws[i-1]));
-            if(delta_theta < 0.00001){
-                yaws[i] += yaws[i-1];
-            }else{
-                yaws[i] += yaws[i-1] + steps_d/delta_theta;
-            }
+            double delta_theta = (steps_d/VehicleParams::LT)*sin(yaw[i-1] - yaws[i-1]);
+            yaws[i] += yaws[i-1] + delta_theta;
             // std::cout<< " yaw_from_xyyaw " << yaw[i-1] << " " << yaws[i-1] << " " << delta_theta << std::endl;
             if(std::isnan(delta_theta)){
-                std::cout<< " yaw_from_xyyaw " << yaw[i-1] << " " << yaws[i-1] << " " << VehicleParams::LT << std::endl;
+                std::cout<< " yaw_from_xyyaw " << yaw[i-1] << " " << yaws[i-1] << " " << i << std::endl;
+                return false;
             }
-            
         }
+        return true;
     } 
 
     bool TrailerLib::check_trailer_collision(const Eigen::MatrixXd& obses

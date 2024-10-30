@@ -124,9 +124,11 @@ function calc_trailer_yaw_from_xyyaw(
 
     tyaw = fill(0.0, length(x))
     tyaw[1] = init_tyaw
-
+    # println(" tyaw ", yaw)
+    # println(" =================yaw================ ")
     for i in 2:length(x)
         tyaw[i] += tyaw[i-1] + steps[i-1]/LT*sin(yaw[i-1] - tyaw[i-1])
+        # println("i ,yaw diff ", i, " ", steps[i-1], "  ", LT*sin(yaw[i-1] - tyaw[i-1]))
     end
 
     return tyaw

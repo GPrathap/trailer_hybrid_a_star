@@ -81,6 +81,7 @@ function calc_dist_policy(gx::Float64, gy::Float64,
         end
     end
 
+    println("  length(closed)  ", length(closed))
     pmap = calc_policy_map(closed, xw, yw, minx, miny)
 
     return pmap

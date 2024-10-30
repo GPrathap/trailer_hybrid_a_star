@@ -833,11 +833,11 @@ namespace rs_paths
         double y = (-s*dx + c*dy)*maxc;
         Eigen::Vector3d p_est(x, y, dth);
         SCS(p_est, paths);
-        CSC(p_est, paths);
-        CCC(p_est, paths);
-        CCCC(p_est, paths);
-        CCSC(p_est, paths);
-        CCSCC(p_est, paths);
+        // CSC(p_est, paths);
+        // CCC(p_est, paths);
+        // CCCC(p_est, paths);
+        // CCSC(p_est, paths);
+        // CCSCC(p_est, paths);
         // std::cout<< "==========CCSCC========" << std::endl;
         
     }

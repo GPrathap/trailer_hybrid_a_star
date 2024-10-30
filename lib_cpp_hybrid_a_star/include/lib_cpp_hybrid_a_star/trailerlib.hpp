@@ -58,7 +58,7 @@ namespace planning
                         , const Eigen::MatrixXd& obses, double wbd, double wbr
                         , const std::vector<double> vrx, const std::vector<double> vry);
 
-            void calc_trailer_yaw_from_xyyaw(Eigen::MatrixXd& poses, const double init_tyaw
+            bool calc_trailer_yaw_from_xyyaw(Eigen::MatrixXd& poses, const double init_tyaw
                                                         , Eigen::VectorXd& steps, Eigen::VectorXd& yaws);
             bool check_trailer_collision(const Eigen::MatrixXd& obses
                                     , Eigen::MatrixXd& poses, grid_search::KDTree& kd_tree);

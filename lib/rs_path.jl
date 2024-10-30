@@ -728,11 +728,11 @@ function generate_path(q0::Array{Float64}, q1::Array{Float64}, maxc::Float64)::A
 
     paths = Path[]
     paths = SCS(x, y, dth, paths)
-    paths = CSC(x, y, dth, paths)
-    paths = CCC(x, y, dth, paths)
-    paths = CCCC(x, y, dth, paths)
-    paths = CCSC(x, y, dth, paths)
-    paths = CCSCC(x, y, dth, paths)
+    # paths = CSC(x, y, dth, paths)
+    # paths = CCC(x, y, dth, paths)
+    # paths = CCCC(x, y, dth, paths)
+    # paths = CCSC(x, y, dth, paths)
+    # paths = CCSCC(x, y, dth, paths)
 
     return paths
 end

@@ -150,41 +150,47 @@ function calc_hybrid_astar_path(sx::Float64, sy::Float64, syaw::Float64, syaw1::
         #move current node from open to closed
         delete!(open, c_id)
         closed[c_id] = current
-        println(" c_id ", c_id)
-        println(" current ", current)
-        println(" ngoal ", ngoal)
-        println(" gyaw1 ", gyaw1)
+        # println(" c_id ", c_id)
+        # println(" current ", current)
+        # println(" ngoal ", ngoal)
+        # println(" gyaw1 ", gyaw1)
         isupdated, fpath = update_node_with_analystic_expantion(current, ngoal, c, ox, oy, kdtree, gyaw1)
-        println(" isupdated ", isupdated)
-        println(" fpath ", fpath)
+        # println(" isupdated ", isupdated)
+        # println(" fpath ", fpath)
+        # break
+        if isupdated # found
+            fnode = fpath
+            break
+        end
+
+        inityaw1 = current.yaw1[1]
+        println("-----------------------------------")
+        for i in 1:nmotion
+            node = calc_next_node(current, c_id, u[i], d[i], c)
+           
+            if !verify_index(node, c, ox, oy, inityaw1, kdtree) continue end
+
+            node_ind = calc_index(node, c)
+            println(" node_ind ", node_ind)
+            # If it is already in the closed set, skip it
+            if haskey(closed, node_ind)  continue end
+
+            if !haskey(open, node_ind)
+                open[node_ind] = node
+                cost_node = calc_cost(node, h_dp, ngoal, c)
+                println(" node_ind ", node_ind, " cost_node ", cost_node)
+                break
+                enqueue!(pq, node_ind, cost_node)
+            else
+                if open[node_ind].cost > node.cost
+                    # If so, update the node to have a new parent
+                    println(" open[node_ind].cost ", open[node_ind].cost, " node.cost ", node.cost)
+                    open[node_ind] = node
+                end
+            end
+        end
+        println("-----------------------------------")
         break
-        # if isupdated # found
-        #     fnode = fpath
-        #     break
-        # end
-
-        # inityaw1 = current.yaw1[1]
-
-        # for i in 1:nmotion
-        #     node = calc_next_node(current, c_id, u[i], d[i], c)
-
-        #     if !verify_index(node, c, ox, oy, inityaw1, kdtree) continue end
-
-        #     node_ind = calc_index(node, c)
-
-        #     # If it is already in the closed set, skip it
-        #     if haskey(closed, node_ind)  continue end
-
-        #     if !haskey(open, node_ind)
-        #         open[node_ind] = node
-        #         enqueue!(pq, node_ind, calc_cost(node, h_dp, ngoal, c))
-        #     else
-        #         if open[node_ind].cost > node.cost
-        #             # If so, update the node to have a new parent
-        #             open[node_ind] = node
-        #         end
-        #     end
-        # end
     end
 
     println("final expand node:", length(open) + length(closed))
@@ -249,12 +255,15 @@ function calc_rs_path_cost(rspath::rs_path.Path, yaw1)
         end
     end
 
+    # println(" 1cost ", cost )
+
     # swich back penalty
     for i in 1:length(rspath.lengths) - 1
         if rspath.lengths[i] * rspath.lengths[i+1] < 0.0 # switch back
             cost += SB_COST
         end
     end
+    # println(" 2cost ", cost )
 
     # steer penalyty
     for ctype in rspath.ctypes
@@ -262,7 +271,7 @@ function calc_rs_path_cost(rspath::rs_path.Path, yaw1)
             cost += STEER_COST*abs(MAX_STEER)
         end
     end
-
+    # println(" 3cost ", cost )
     # ==steer change penalty
     # calc steer profile
     nctypes = length(rspath.ctypes)
@@ -274,13 +283,16 @@ function calc_rs_path_cost(rspath::rs_path.Path, yaw1)
             ulist[i] = MAX_STEER
         end
     end
- 
+    # println(" 4cost ", cost )
     for i in 1:length(rspath.ctypes) - 1
         cost += STEER_CHANGE_COST*abs(ulist[i+1] - ulist[i])
     end
-
-    cost += JACKKNIF_COST * sum(abs.(rs_path.pi_2_pi.(rspath.yaw-yaw1)))
-
+    # println(" 5cost ", cost )
+    # println(" rspath.yaw ", rspath.yaw)
+    # println(" yaw1 ", yaw1)
+    angle_diff = sum(abs.(rs_path.pi_2_pi.(rspath.yaw-yaw1)))
+    cost += JACKKNIF_COST * angle_diff
+    # println(" 6cost ", cost, " angle_diff ", angle_diff)
     return cost
 end
 
@@ -294,12 +306,12 @@ function analystic_expantion(n::Node, ngoal::Node, c::Config, ox, oy, kdtree)
     max_curvature = tan(MAX_STEER)/WB
     paths = rs_path.calc_paths(sx,sy,syaw,ngoal.x[end], ngoal.y[end], ngoal.yaw[end],
                                    max_curvature, step_size=MOTION_RESOLUTION)
-    println(" 1analystic_expantion 1")
+    # println(" 1analystic_expantion 1")
     if length(paths) == 0 
         return nothing
     end
 
-    println(" 1analystic_expantion paths ", length(paths));
+    # println(" 1analystic_expantion paths ", length(paths));
 
     pathqueue = PriorityQueue{rs_path.Path, Float64}()
     for path in paths
@@ -307,7 +319,7 @@ function analystic_expantion(n::Node, ngoal::Node, c::Config, ox, oy, kdtree)
         yaw1 = trailerlib.calc_trailer_yaw_from_xyyaw(path.x, path.y, path.yaw, n.yaw1[end], steps)
         cost = calc_rs_path_cost(path, yaw1)
         enqueue!(pathqueue, path, cost)
-        println(" 1analystic_expantion path.cost ", cost);
+        # println(" 1analystic_expantion path.cost ", cost);
     end
 
     for i in length(pathqueue)
@@ -321,7 +333,7 @@ function analystic_expantion(n::Node, ngoal::Node, c::Config, ox, oy, kdtree)
             return path # path is ok
         end
     end
-    println(" 1analystic_expantion 2")
+    # println(" 1analystic_expantion 2")
 
     return nothing
 end
@@ -376,7 +388,8 @@ function calc_next_node(current::Node, c_id::Int64,
     ylist = fill(0.0, nlist)
     yawlist = fill(0.0, nlist)
     yaw1list = fill(0.0, nlist)
-
+    # println(" current pose ", current.x, " nlist ", nlist)
+    # println(" current pose ", current.y)
     xlist[1] = current.x[end] + d * MOTION_RESOLUTION*cos(current.yaw[end])
     ylist[1] = current.y[end] + d * MOTION_RESOLUTION*sin(current.yaw[end])
     yawlist[1] = rs_path.pi_2_pi(current.yaw[end] + d*MOTION_RESOLUTION/WB * tan(u))
@@ -388,10 +401,17 @@ function calc_next_node(current::Node, c_id::Int64,
         yawlist[i+1] = rs_path.pi_2_pi(yawlist[i] + d*MOTION_RESOLUTION/WB * tan(u))
         yaw1list[i+1] = rs_path.pi_2_pi(yaw1list[i] + d*MOTION_RESOLUTION/LT*sin(yawlist[i]-yaw1list[i]))
     end
+
+    # println(" xlist ", xlist)
+    # println(" ylist ", ylist)
+    # println(" yawlist ", yawlist)
+    # println(" yaw1list ", yaw1list)
  
     xind = round(Int64, xlist[end]/c.xyreso)
     yind = round(Int64, ylist[end]/c.xyreso)
     yawind = round(Int64, yawlist[end]/c.yawreso)
+
+    # println(" xind ", xind, " yind ", yind, " yawind ", yawind) 
 
     addedcost = 0.0
     if d > 0
@@ -539,7 +559,8 @@ end
 
 
 function calc_cost(n::Node, h_dp::Array{Float64}, ngoal::Node, c::Config)
-
+    # println(" hp ", h_dp)
+    println(" n.cost ", n.cost, " hp ", h_dp[n.xind - c.minx, n.yind - c.miny])
    return (n.cost + H_COST*h_dp[n.xind - c.minx, n.yind - c.miny])
 
 end
