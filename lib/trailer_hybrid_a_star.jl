@@ -11,6 +11,7 @@ using DataFrames
 using NearestNeighbors
 using DataStructures 
 using Base
+using Printf
 include("rs_path.jl")
 include("grid_a_star.jl")
 include("trailerlib.jl")
@@ -52,20 +53,22 @@ struct Node
 end
 
 function Base.show(io::IO, node::Node)
-    println(io, "Node(")
-    println(io, "  xind: ", node.xind)
-    println(io, "  yind: ", node.yind)
-    println(io, "  yawind: ", node.yawind)
-    println(io, "  direction: ", node.direction ? "forward" : "backward")
-    # println(io, "  x: ", node.x)
-    # println(io, "  y: ", node.y)
-    # println(io, "  yaw: ", node.yaw)
-    # println(io, "  yaw1: ", node.yaw1)
-    # println(io, "  directions: ", node.directions)
-    println(io, "  steer: ", node.steer)
-    println(io, "  cost: ", node.cost)
-    println(io, "  pind: ", node.pind)
-    print(io, ")")
+    println(io, "Node( xind: ", node.xind, "  yind: ", node.yind
+                    , "  yawind: ", node.yawind, "  direction: ", node.direction ? "forward" : "backward" 
+                    , "  steer: ", node.steer, "  cost: ", node.cost, "  pind: ", node.pind, ")")
+    # println(io, )
+    # println(io)
+    # println(io)
+    # println(io)
+    # # println(io, "  x: ", node.x)
+    # # println(io, "  y: ", node.y)
+    # # println(io, "  yaw: ", node.yaw)
+    # # println(io, "  yaw1: ", node.yaw1)
+    # # println(io, "  directions: ", node.directions)
+    # println(io, "  steer: ", node.steer)
+    # println(io, "  cost: ", node.cost)
+    # println(io, "  pind: ", node.pind)
+    # print(io, ")")
 end
 
 struct Config # config struct for hybrid A* DB
@@ -138,7 +141,9 @@ function calc_hybrid_astar_path(sx::Float64, sy::Float64, syaw::Float64, syaw1::
     # println("u d ", nmotion,  " " , length(d));
     # println(u);
     # println(d);
+    counter = 0 
     while true
+        # break;
         if length(open) == 0
             println("Error: Cannot find path, No open set")
             return []
@@ -151,7 +156,7 @@ function calc_hybrid_astar_path(sx::Float64, sy::Float64, syaw::Float64, syaw1::
         delete!(open, c_id)
         closed[c_id] = current
         # println(" c_id ", c_id)
-        # println(" current ", current)
+        println(" current ", current)
         # println(" ngoal ", ngoal)
         # println(" gyaw1 ", gyaw1)
         isupdated, fpath = update_node_with_analystic_expantion(current, ngoal, c, ox, oy, kdtree, gyaw1)
@@ -164,14 +169,17 @@ function calc_hybrid_astar_path(sx::Float64, sy::Float64, syaw::Float64, syaw1::
         end
 
         inityaw1 = current.yaw1[1]
-        println("-----------------------------------")
+        # println("-----------------------------------")
         for i in 1:nmotion
             node = calc_next_node(current, c_id, u[i], d[i], c)
            
             if !verify_index(node, c, ox, oy, inityaw1, kdtree) continue end
 
             node_ind = calc_index(node, c)
-            println(" node_ind ", node_ind)
+            # println("-------------node info----------------------")
+            # println(" node_ind ", node_ind)
+            println(" node ", node)
+            # println("-------------end---------------------")
             # If it is already in the closed set, skip it
             if haskey(closed, node_ind)  continue end
 
@@ -179,7 +187,7 @@ function calc_hybrid_astar_path(sx::Float64, sy::Float64, syaw::Float64, syaw1::
                 open[node_ind] = node
                 cost_node = calc_cost(node, h_dp, ngoal, c)
                 println(" node_ind ", node_ind, " cost_node ", cost_node)
-                break
+                # break
                 enqueue!(pq, node_ind, cost_node)
             else
                 if open[node_ind].cost > node.cost
@@ -188,9 +196,18 @@ function calc_hybrid_astar_path(sx::Float64, sy::Float64, syaw::Float64, syaw1::
                     open[node_ind] = node
                 end
             end
+
+            # counter = counter + 1
+            # if(counter == 5)
+            #     break
+            # end
         end
-        println("-----------------------------------")
-        break
+        # println("-----------------------------------")
+        # break
+        # counter = counter + 1
+        # if(counter == 1)
+        #     break
+        # end
     end
 
     println("final expand node:", length(open) + length(closed))
@@ -413,6 +430,7 @@ function calc_next_node(current::Node, c_id::Int64,
 
     # println(" xind ", xind, " yind ", yind, " yawind ", yawind) 
 
+    # println(" =========================cost=========================== ") 
     addedcost = 0.0
     if d > 0
         direction = true
@@ -421,22 +439,33 @@ function calc_next_node(current::Node, c_id::Int64,
         direction = false
         addedcost += abs(arc_l) * BACK_COST
     end
+    # println(" =========== addedcost1 ", addedcost) 
+
 
     # swich back penalty
     if direction != current.direction # switch back penalty
         addedcost += SB_COST
     end
 
+    # println(" =========== addedcost2 ", addedcost) 
+
     # steer penalyty
     addedcost += STEER_COST*abs(u)
 
+    # println(" =========== addedcost3 ", addedcost) 
+
     # steer change penalty
     addedcost += STEER_CHANGE_COST*abs(current.steer - u)
+    # println(" =========== addedcost4 ", addedcost) 
 
+    # println(" =========== yawlist ", yawlist, " ----- ", yaw1list) 
+    angle_diff = sum(abs.(rs_path.pi_2_pi.(yawlist-yaw1list)))
     # jacknif cost
-    addedcost += JACKKNIF_COST * sum(abs.(rs_path.pi_2_pi.(yawlist-yaw1list)))
+    addedcost += JACKKNIF_COST * angle_diff
+    # println(" =========== addedcost5 ", addedcost, " angle_diff ", angle_diff) 
 
     cost = current.cost + addedcost 
+    # println(" =========== addedcost6 ", addedcost) 
 
     directions = [direction for i in 1:length(xlist)]
     node = Node(xind, yind, yawind, direction, xlist, ylist, yawlist, yaw1list, directions, u, cost, c_id)
@@ -501,8 +530,10 @@ function calc_config(ox::Array{Float64}, oy::Array{Float64},
     maxx = round(Int64, max_x_m/xyreso)
     maxy = round(Int64, max_y_m/xyreso)
 
+    
     xw = round(Int64,(maxx - minx))
     yw = round(Int64,(maxy - miny))
+    println("   minx miny maxx maxy xw yw ", minx, " ", miny, " ", maxx , " ", maxy, " ", xw, " ", yw )
 
     minyaw = round(Int64, - pi/yawreso) - 1
     maxyaw = round(Int64, pi/yawreso)
@@ -529,6 +560,8 @@ function get_final_path(closed::Dict{Int64, Node},
     direction = Array{Float64}(reverse(ngoal.directions))
     nid = ngoal.pind
     finalcost = ngoal.cost
+
+    println(" nid ", nid , " ", finalcost)
 
     while true
         n = closed[nid]
@@ -559,9 +592,29 @@ end
 
 
 function calc_cost(n::Node, h_dp::Array{Float64}, ngoal::Node, c::Config)
-    # println(" hp ", h_dp)
-    println(" n.cost ", n.cost, " hp ", h_dp[n.xind - c.minx, n.yind - c.miny])
-   return (n.cost + H_COST*h_dp[n.xind - c.minx, n.yind - c.miny])
+    
+    # formatted_A = map(elem -> @sprintf("%.4f", elem), h_dp)
+    # # println(h_dp)
+    # # Print the formatted matrix
+    # for row in eachrow(formatted_A)
+    #     println(join(row, " "))
+    # end
+    # for row in h_dp
+    #     for elem in row
+    #         println(round.(elem; sigdigits=4))
+    #     end
+    #     println()  # Newline at the end of each row
+    # end
+    println(" n.xind ", n.xind, " n.yind ", n.yind, " ", n.xind - c.minx, " ", n.yind - c.miny)
+    if(n.xind - c.minx < 0)
+        println("=======================x======================================================")
+    end
+    if(n.yind - c.miny < 0)
+        println("======================y=======================================================")
+    end
+    total_cost = (n.cost + H_COST*h_dp[n.xind - c.minx, n.yind - c.miny])
+    println(" n.cost ", n.cost, " hp ", h_dp[n.xind - c.minx, n.yind - c.miny], " total: ", total_cost)
+   return total_cost
 
 end
 

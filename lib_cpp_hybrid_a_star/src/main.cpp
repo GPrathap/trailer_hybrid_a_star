@@ -14,9 +14,9 @@ int main(int arc, char *argv[]){
     Eigen::Vector4d s(14.0, 10.0, math_utility::deg2rad(0.0), math_utility::deg2rad(0.0));
     Eigen::Vector4d g(0.0, 0.0, math_utility::deg2rad(90.0), math_utility::deg2rad(90.0));
     
-    Eigen::MatrixXd obss(138, 2);
+    Eigen::MatrixXd obss(139, 2);
     int obs_index = 0;
-    for(int i=-25; i< 25; i++){
+    for(int i=-25; i<= 25; i++){
         obss.row(obs_index) << i*1.0, 15.0;
         obs_index++;
     }
@@ -40,6 +40,13 @@ int main(int arc, char *argv[]){
         obss.row(obs_index) << i*1.0, -15.0;
         obs_index++;
     }
+
+    // Eigen::VectorXd col_min = obss.colwise().minCoeff(); 
+    // Eigen::VectorXd col_max = obss.colwise().maxCoeff();
+
+    // std::cout<< col_min << std::endl;
+    // std::cout<< col_max << std::endl;
+
 
     planning::HybridPath path;
     planning::TrailerHybridAStar trailer_hybrid_astar;

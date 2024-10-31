@@ -46,7 +46,7 @@ function calc_dist_policy(gx::Float64, gy::Float64,
     nmotion = length(motion[:,1])
     pq = PriorityQueue()
     enqueue!(pq, calc_index(ngoal, xw, minx, miny), ngoal.cost)
-
+    counter = 0
     while true
         if length(open) == 0;println("Finish Search");break;end
 
@@ -55,15 +55,21 @@ function calc_dist_policy(gx::Float64, gy::Float64,
 
         delete!(open, c_id)
         closed[c_id] = current
-
+        # println("------------------------------------------------- ")
+        # println(" current->pind ", current.x, " ", current.y)
         for i in 1:nmotion # expand search grid based on motion model
+            # println(" current pose ", current.x, " ", current.y)
             node = Node(current.x+motion[i,1], current.y+motion[i,2], current.cost+motion[i,3], c_id)
-
+            
+           
+            # println(" current->pind ", node.pind)
             if !verify_node(node, minx, miny, xw, yw, obmap)
+                # println("not veried ")
                 continue
             end
 
             node_ind = calc_index(node, xw, minx, miny)
+            # println(" node pose ", node.x, " ", node.y, " ", c_id, " ", node_ind)
 
             # If it is already in the closed set, skip it
             if haskey(closed,node_ind)  continue end
@@ -73,12 +79,19 @@ function calc_dist_policy(gx::Float64, gy::Float64,
                     # If so, update the node to have a new parent
                     open[node_ind].cost = node.cost
                     open[node_ind].pind = c_id
+                    # println(" open node  ", node.x, " ", node.y, " ", c_id, " ", node.cost)
                 end
             else # add to open set
                 open[node_ind] = node
+                # println(" close node ", node.pind)
                 enqueue!(pq, calc_index(node, xw, minx, miny), node.cost)
             end
         end
+        # counter = counter + 1
+        # if(counter == 5)
+        #     break
+        # end
+        # break;
     end
 
     println("  length(closed)  ", length(closed))
@@ -195,6 +208,7 @@ function verify_node(node::Node, minx::Int64, miny::Int64, xw::Int64, yw::Int64,
     end
 
     #collision check
+    # println(" ", obmap)
     if obmap[node.x-minx, node.y-miny]
         return false
     end 
@@ -258,7 +272,9 @@ function calc_obstacle_map(ox::Array{Float64}, oy::Array{Float64}, reso::Float64
         end
     end
 
-    # println(" calc_obstacle_map done")
+    println(" minx, miny, maxx, maxy, xwidth, ywidth "
+            ,  minx, " ", miny, " ", maxx, " " , maxy, " "
+            , xwidth, " ", ywidth)
 
     return obmap, minx, miny, maxx, maxy, xwidth, ywidth
 end

@@ -77,7 +77,7 @@ namespace planning
             << "xind: " << node.xind << ", "
             << "yind: " << node.yind << ", "
             << "yawind: " << node.yawind << ", "
-            << "direction: " << (node.direction ? "forward" : "backward") << ",\n"
+            << "direction: " << (node.direction ? "forward" : "backward")
             // << "poses:\n" << node.poses << ",\n"
             << "steer: " << node.steer << ", "
             << "cost: " << node.cost << ", "

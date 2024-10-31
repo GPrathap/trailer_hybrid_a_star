@@ -7,16 +7,20 @@ namespace planning
 
     void TrailerHybridAStar::calc_config(Eigen::MatrixXd& obses, double xyreso, double yawreso){
         
-        Eigen::VectorXd col_min = obses.colwise().minCoeff(); 
-        Eigen::VectorXd col_max = obses.colwise().maxCoeff();
+        // Eigen::VectorXd col_min = obses.colwise().minCoeff(); 
+        // Eigen::VectorXd col_max = obses.colwise().maxCoeff();
 
-        col_min = col_min.array() - PlannerParams::EXTEND_AREA;
-        col_max = col_max.array() + PlannerParams::EXTEND_AREA;
+        // col_min = col_min.array() - PlannerParams::EXTEND_AREA;
+        // col_max = col_max.array() + PlannerParams::EXTEND_AREA;
 
-        int minx = std::round(col_min[0]/xyreso);
-        int miny = std::round(col_min[1]/xyreso);
-        int maxx = std::round(col_max[0]/xyreso);
-        int maxy = std::round(col_max[1]/xyreso);
+        // int minx = std::round(col_min[0]/xyreso);
+        // int miny = std::round(col_min[1]/xyreso);
+        // int maxx = std::round(col_max[0]/xyreso);
+        // int maxy = std::round(col_max[1]/xyreso);
+        int minx = -15;
+        int miny = -10;
+        int maxx = 15;
+        int maxy = 10;
         
         int xw = maxx - minx;
         int yw = maxy - miny;
@@ -36,6 +40,7 @@ namespace planning
     void TrailerHybridAStar::calc_holonomic_with_obstacle_heuristic(HybridNode& gnode
                                     , Eigen::MatrixXd& obses, double xyreso){
         Eigen::Vector2d goal_pose = gnode.poses.row(gnode.poses.rows()-1).head(2);
+        
         grid_a_star_.calc_dist_policy(goal_pose, obses, xyreso, 1.0, h_dp);
     }
 
@@ -164,7 +169,7 @@ namespace planning
                 }
                 double fcost = current.cost + calc_rs_path_cost(apath, yaw1);
                 int fpind = calc_index(current);
-                // std::cout<< "----analystic_expantion---- fcost " << fcost << std::endl;
+                std::cout<< "----analystic_expantion---- fcost " << fcost << std::endl;
                 
                 // to get rows from index 1 to the end (2nd to last rows)
                 Eigen::MatrixXd updated_poses = apath.poses.block(1, 0, apath.poses.rows() - 1, apath.poses.cols());
@@ -188,15 +193,19 @@ namespace planning
         ref_path.push_back(g_poses);
         int total_rows = g_poses.rows();
         int total_cols = g_poses.cols();
-        std::cout<< "Final path info " << total_cols << " " << total_rows << std::endl;
+        std::cout<< "Final path info " << total_cols << " " << total_rows << " " << closed.size() << std::endl;
         
         while(true){
-            if (closed.find(nid) != closed.end()) {
+            std::cout<< "------------d1------------" << std::endl;
+            if (closed.find(nid) == closed.end()) {
                 std::cout<< nid << " cant find the requested node" << std::endl;
                 break;
             }
+            std::cout<< "------------d2------------" << std::endl;
             HybridNode* n = closed[nid];
+            std::cout<< "------------d3------------" << n->poses << std::endl;
             Eigen::MatrixXd n_poses = n->poses.colwise().reverse();
+            std::cout<< "------------d4------------" << std::endl;
             ref_path.push_back(n_poses);
             total_rows += n_poses.rows();
             nid = n->pind;
@@ -204,14 +213,14 @@ namespace planning
                 break;
             }
         }
-
+        std::cout<< "------------d5------------" << std::endl;
         Eigen::MatrixXd final_path(total_rows, total_cols);
         int current_row = 0;
         for (const auto& mat : ref_path) {
             final_path.block(current_row, 0, mat.rows(), mat.cols()) = mat;
             current_row += mat.rows();
         }
-
+        std::cout<< "------------d6------------" << std::endl;
         // adjuct first direction
         // direction[1] = direction[2];
         if(final_path.rows()>2 && final_path.cols() > 3 ){
@@ -226,8 +235,14 @@ namespace planning
 
     double TrailerHybridAStar::calc_cost(HybridNode& n, HybridNode& ngoal){
         // std::cout<< h_dp << std::endl;
-        std::cout<< " ngoal.cost " << ngoal.cost << " hp " << h_dp(n.xind - config_.minx, n.yind - config_.miny) << std::endl;
-        return ngoal.cost + PlannerParams::H_COST*h_dp(n.xind - config_.minx, n.yind - config_.miny);
+        // int index_x = ((n.xind - config_.minx) < 0) ? 0 : n.xind - config_.minx;
+        // int index_y = ((n.yind - config_.miny) < 0) ? 0 : n.yind - config_.miny;
+        int index_x = (n.xind - config_.minx) - 1;
+        int index_y = (n.yind - config_.miny) - 1;
+        std::cout<< h_dp.rows() << " " << h_dp.cols() << " " << " " << n.xind << " "<< n.yind <<"    index: " <<  index_x << "," << index_y  << std::endl;
+        double total_cost = n.cost + PlannerParams::H_COST*h_dp(index_x, index_y);
+        std::cout<< " n.cost " << n.cost << " hp " << h_dp(index_x, index_y) << " total: "<< total_cost << std::endl;
+        return total_cost;
     }
 
 
@@ -289,7 +304,9 @@ namespace planning
             // print_vec(u);
             // print_vec(d);
             std::cout<< "   ============================== " << std::endl;
+            int counter = 0;
             while (true){
+                // break;
                 if(open.empty()){
                     std::cout<< "Error: Cannot find path, No open set" << std::endl;
                     break;
@@ -312,7 +329,7 @@ namespace planning
                 open.erase(c_id);
                 closed[c_id] = current;
                 HybridNode fpath;
-                std::cout << " c_id " << c_id << std::endl; 
+                // std::cout << " c_id " << c_id << std::endl; 
                 std::cout << " current " << *current << std::endl; 
                 // std::cout << " ngoal " << ngoal << std::endl; 
                 // std::cout << " gyaw1 " << g[3] << std::endl; 
@@ -323,18 +340,22 @@ namespace planning
                 // std::cout << " fpath " << fpath << std::endl;
                 // break;
                 if (isupdated){
+                    std::cout << " find the path " << fpath << std::endl;
                     fnode = fpath;
                     break;
                 }
                 double inityaw1 = current->poses.row(0)[3];
-                std::cout<< " --------------------------------- " << std::endl;
+                // std::cout<< " --------------------------------- " << std::endl;
                 for(int i=0; i<nmotion; i++){
                     HybridNode node = calc_next_node(*current, c_id, u[i], d[i]);
                     if (!verify_index(node, obses, inityaw1, kdtree)){
                         continue;
                     }
                     int node_ind = calc_index(node);
-                    std::cout<< " node_ind " << node_ind << std::endl;
+                    // std::cout<< "------------------------node info------------------------" << std::endl;
+                    // std::cout<< " node_ind " << node_ind << std::endl;
+                    std::cout<< " node " << node << std::endl;
+                    // std::cout<< "------------------------end----------------------" << std::endl;
                     //  If it is already in the closed set, skip it
                     if (closed.find(node_ind) != closed.end()) {
                         continue;
@@ -343,7 +364,7 @@ namespace planning
                         open[node_ind] = &node;
                         double cost = calc_cost(node, ngoal);
                         std::cout<< " node_ind " << node_ind << " cost " << cost << std::endl;
-                        break;
+                        // break;
                         CostNode cost_node(cost, node_ind);
                         pq.push(cost_node);
                     }else{
@@ -353,9 +374,21 @@ namespace planning
                             open[node_ind] = &node;
                         }
                     }
+
+                    // counter++;
+                    // if(counter == 5){
+                    //     break;
+                    // }
                 }
-                std::cout<< " -------------------end-------------- " << std::endl;
+                // std::cout<< " -------------------end-------------- " << std::endl;
+            //     break;
+            // counter++;
+            // if(counter == 1){
+            //     break;
+            // }
             }
+
+            
             std::cout<< "final expand node:" << open.size() + closed.size() << std::endl;
             get_final_path(closed, fnode, nstart, path);
             return true;
@@ -377,11 +410,11 @@ namespace planning
         rs_path_.calc_paths(current_pose.head(3), target_pose.head(3)
                             , max_curvature, paths, PlannerParams::MOTION_RESOLUTION);
 
-        std::cout << " 1analystic_expantion paths.size() "<< paths.size() << std::endl;
+        // std::cout << " 1analystic_expantion paths.size() "<< paths.size() << std::endl;
         if(paths.size() == 0){
             return false;
         }
-        std::cout << " 1analystic_expantion paths "<< paths.size() << std::endl;
+        // std::cout << " 1analystic_expantion paths "<< paths.size() << std::endl;
 
         std::priority_queue<rs_paths::Path, std::vector<rs_paths::Path>, rs_paths::CompareNode> pathqueue;
         
@@ -396,7 +429,7 @@ namespace planning
             }
             // std::cout <<  "======d 2" << std::endl;
             path.cost = calc_rs_path_cost(path, yaw1);
-            std::cout << " 1analystic_expantion path.cost "<< path.cost << std::endl;
+            // std::cout << " 1analystic_expantion path.cost "<< path.cost << std::endl;
             pathqueue.push(path);
         }
 
@@ -421,12 +454,12 @@ namespace planning
             }
 
             if (trailerlib_.check_trailer_collision(obses, selected_poses, kdtree)){
-                std::cout << " 1analystic_expantion check_trailer_collision find path " << std::endl;
+                // std::cout << " 1analystic_expantion check_trailer_collision find path " << std::endl;
                 selected_path = path;
                 return true;
             }
         } 
-        std::cout << " 1analystic_expantion 2" << std::endl;
+        // std::cout << " 1analystic_expantion 2" << std::endl;
         return false;       
     }
 
@@ -454,7 +487,7 @@ namespace planning
         if ((node.yind - config_.miny) >= config_.yw){
             return false;
         }else if((node.yind - config_.miny) <= 0){
-            return true;
+            return false;
         }
 
          // check collisiton
@@ -519,6 +552,7 @@ namespace planning
 
         double addedcost = 0.0;
         double direction = 1.0;
+        // std::cout<< " =========================cost=========================== " << std::endl;
         if (d > 0){
             direction = 1.0;
             addedcost += std::abs(arc_l);
@@ -526,20 +560,27 @@ namespace planning
             direction = 0.0;
             addedcost += std::abs(arc_l) * PlannerParams::BACK_COST;
         }
+        // std::cout<< " =========== addedcost1 " << addedcost << std::endl;
         // swich back penalty
         if (direction != current.direction){ // switch back penalty
             addedcost += PlannerParams::SB_COST;
         }
+        // std::cout<< " =========== addedcost2 " << addedcost << std::endl;
         // steer penalyty
         addedcost += PlannerParams::STEER_COST*std::abs(u);
+        // std::cout<< " =========== addedcost3 " << addedcost << std::endl;
         // steer change penalty
         addedcost += PlannerParams::STEER_CHANGE_COST*std::abs(current.steer - u);
-        double total_angle_diff = (current.poses.col(2) - current.poses.col(3))
+        // std::cout<< " =========== addedcost4 " << addedcost << std::endl;
+        double total_angle_diff = (poses.col(2) - poses.col(3))
                     .unaryExpr([](double angle) { return std::abs(math_utility::pi_to_pi(angle)); })
                     .sum();
         // jacknif cost
         addedcost += PlannerParams::JACKKNIF_COST*total_angle_diff;
+        // std::cout<< " =========== yawlist " << poses.col(2).transpose()  << " ------- " << poses.col(3).transpose() << std::endl;
+        // std::cout<< " =========== addedcost5 " << addedcost  << " total_angle_diff " << total_angle_diff << std::endl;
         double cost = current.cost + addedcost;
+        // std::cout<< " =========== addedcost6 " << addedcost << std::endl;
         poses.col(4).setConstant(direction);
         HybridNode next_node(xind, yind, yawind, direction, poses, u, cost, c_id);
         return next_node;

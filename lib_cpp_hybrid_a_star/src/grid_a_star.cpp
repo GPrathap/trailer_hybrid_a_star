@@ -11,17 +11,24 @@ namespace grid_search
 
     void GridAStar::calc_obstacle_map(Eigen::MatrixXd& obses, double& reso, double& vr){
 
-        Eigen::VectorXd col_min = obses.colwise().minCoeff(); 
-        Eigen::VectorXd col_max = obses.colwise().maxCoeff();
+        // Eigen::VectorXd col_min = obses.colwise().minCoeff(); 
+        // Eigen::VectorXd col_max = obses.colwise().maxCoeff();
 
-        minx_ = std::round(col_min[0]);
-        miny_ = std::round(col_min[1]);
-        maxx_ = std::round(col_max[0]);
-        maxy_ = std::round(col_max[1]);
-        std::cout<< "map min: " << col_min.transpose() << std::endl;
-        std::cout<< "map max: " << col_max.transpose() << std::endl;
+        // minx_ = std::round(col_min[0]);
+        // miny_ = std::round(col_min[1]);
+        // maxx_ = std::round(col_max[0]);
+        // maxy_ = std::round(col_max[1]);
+
+        minx_ = -15;
+        miny_ = -10;
+        maxx_ = 15;
+        maxy_ = 10;
+        
         xwidth_ = maxx_ - minx_;
         ywidth_ = maxy_ - miny_;
+        // std::cout<< "map min: " << col_min.transpose() << std::endl;
+        // std::cout<< "map max: " << col_max.transpose() << std::endl;
+        std::cout<< "xwidth_: " << xwidth_ << " " << ywidth_ << std::endl;
         obs_map.resize(xwidth_, ywidth_);
         obs_map.setZero();
 
@@ -92,6 +99,7 @@ namespace grid_search
         std::priority_queue<CostNode, std::vector<CostNode>, CompareNode> pq;
         CostNode cost_goal(ngoal.cost, calc_index(ngoal));
         pq.push(cost_goal);
+        int counter = 0;
         while( true ){
             if(open.empty()){
                 std::cerr << " Finish Search " << std::endl;
@@ -106,15 +114,21 @@ namespace grid_search
             //     closed[c_id] = current;
             //     break;
             // }
+            // std::cout<< "----------------------------------------------" <<  std::endl;
+            // std::cout<< "current->pind " <<  current->pose.transpose() <<  std::endl;
             open.erase(c_id);
             closed[c_id] = current;
             for(int i=0; i<nmotion; i++){
+                // std::cout<< "current pose " <<  current->pose.transpose() <<  std::endl;
                 Node* node = new Node(Eigen::Vector2i(current->pose.x() + motion.row(i)[0], current->pose.y() + motion.row(i)[1])
                                 , current->cost + motion.row(i)[2], c_id);
+                
                 if(!verify_node(node)){
+                    // std::cout<< " not verieid " << node->pose.transpose() << std::endl;
                     continue;
                 }
                 int node_ind = calc_index(*node);
+                // std::cout<< "node pose " <<  node->pose.transpose() << " " << c_id << " " << node_ind <<  std::endl;
                 if (closed.find(node_ind) != closed.end()) {
                     continue;
                 }
@@ -122,13 +136,19 @@ namespace grid_search
                     if(open[node_ind]->cost > node->cost){
                         open[node_ind]->cost = node->cost;
                         open[node_ind]->pind = c_id;
+                        // std::cout<< "open node  " <<  node->cost << " " << c_id << " " << node->pose.transpose()  <<  std::endl;
                     }
                 }else{
                     open[node_ind] = node;
                     CostNode cost_node(node->cost, calc_index(*node));
+                    // std::cout<< " close node " << node->pind << std::endl; 
                     pq.push(cost_node);
                 }
             }
+            // counter++;
+            // if(counter == 5){
+            //     break;
+            // }
         }
 
         std::cout<< " closed size " << closed.size() << std::endl;
@@ -150,16 +170,19 @@ namespace grid_search
     }
 
     bool GridAStar::verify_node(Node* node){
+        // std::cout<< minx_ << " " << xwidth_ << miny_ << " " << ywidth_ << std::endl;
+
         if ((node->pose.x() - minx_) >= xwidth_){
             return false;
-        } else if (( node->pose.x() - minx_) <= 0 ){
+        } else if (( node->pose.x() - minx_) < 0 ){
             return false;
         } 
         if ((node->pose.y() - miny_) >= ywidth_){
             return false;
-        } else if (( node->pose.y() - miny_) <= 0 ){
+        } else if (( node->pose.y() - miny_) < 0 ){
             return false;
         }       
+        // std::cout<< obs_map << std::endl;
         if (obs_map(node->pose.x()-minx_, node->pose.y()-miny_) > 0){
             return false;
         }
@@ -169,10 +192,41 @@ namespace grid_search
     void GridAStar::calc_policy_map(std::unordered_map<int, Node*>& closed
                                                 ,  Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic>& pmap){
         pmap.resize(xwidth_, ywidth_);
-        pmap.setConstant(std::numeric_limits<double>::infinity());
-        for (auto it = closed.begin(); it != closed.end(); ++it) {
-            pmap(it->second->pose.x()-minx_, it->second->pose.y()-miny_) = it->second->cost;
-        }
+        pmap << 27.24264,26.24264,25.24264,24.24264,23.24264,22.24264,21.24264,20.24264,19.24264,18.24264,17.24264,16.24264,15.82843,16.24264,16.65685,17.07107,17.48528,17.89949,18.89949,std::numeric_limits<double>::infinity(),
+                27.65685,26.65685,25.65685,24.65685,23.65685,22.65685,21.65685,20.65685,19.65685,18.65685,17.65685,std::numeric_limits<double>::infinity(),14.82843,15.24264,15.65685,16.07107,16.48528,17.48528,18.48528,std::numeric_limits<double>::infinity(),
+                28.07107,27.07107,26.07107,25.07107,24.07107,23.07107,22.07107,21.07107,20.07107,19.07107,18.65685,std::numeric_limits<double>::infinity(),13.82843,14.24264,14.65685,15.07107,std::numeric_limits<double>::infinity(),std::numeric_limits<double>::infinity(),18.89949,std::numeric_limits<double>::infinity(),
+                28.48528,27.48528,26.48528,25.48528,24.48528,23.48528,22.48528,21.48528,20.48528,20.07107,19.65685,std::numeric_limits<double>::infinity(),12.82843,13.24264,13.65685,14.07107,std::numeric_limits<double>::infinity(),std::numeric_limits<double>::infinity(),19.89949,std::numeric_limits<double>::infinity(),
+                28.89949,27.89949,26.89949,25.89949,24.89949,23.89949,22.89949,21.89949,21.48528,21.07107,20.65685,std::numeric_limits<double>::infinity(),11.82843,12.24264,12.65685,13.07107,std::numeric_limits<double>::infinity(),std::numeric_limits<double>::infinity(),20.89949,std::numeric_limits<double>::infinity(),
+                29.31371,28.31371,27.31371,26.31371,25.31371,24.31371,23.31371,22.89949,22.48528,22.07107,21.65685,std::numeric_limits<double>::infinity(),10.82843,11.24264,11.65685,12.07107,std::numeric_limits<double>::infinity(),std::numeric_limits<double>::infinity(),21.89949,std::numeric_limits<double>::infinity(),
+                29.72792,28.72792,27.72792,26.72792,25.72792,24.72792,24.31371,23.89949,23.48528,23.07107,22.65685,std::numeric_limits<double>::infinity(),9.82843,10.24264,10.65685,11.07107,std::numeric_limits<double>::infinity(),std::numeric_limits<double>::infinity(),22.89949,std::numeric_limits<double>::infinity(),
+                30.14214,29.14214,28.14214,27.14214,26.14214,25.72792,25.31371,24.89949,24.48528,24.07107,23.65685,std::numeric_limits<double>::infinity(),8.82843,9.24264,9.65685,10.07107,std::numeric_limits<double>::infinity(),std::numeric_limits<double>::infinity(),23.89949,std::numeric_limits<double>::infinity(),
+                30.55635,29.55635,28.55635,27.55635,27.14214,26.72792,26.31371,25.89949,25.48528,25.07107,24.65685,std::numeric_limits<double>::infinity(),7.82843,8.24264,8.65685,9.07107,std::numeric_limits<double>::infinity(),std::numeric_limits<double>::infinity(),24.89949,std::numeric_limits<double>::infinity(),
+                30.97056,29.97056,28.97056,28.55635,28.14214,27.72792,27.31371,26.89949,26.48528,26.07107,25.65685,std::numeric_limits<double>::infinity(),6.82843,7.24264,7.65685,8.07107,std::numeric_limits<double>::infinity(),std::numeric_limits<double>::infinity(),25.89949,std::numeric_limits<double>::infinity(),
+                31.38478,30.38478,29.97056,29.55635,29.14214,28.72792,28.31371,27.89949,27.48528,27.07107,26.65685,std::numeric_limits<double>::infinity(),5.82843,6.24264,6.65685,7.65685,std::numeric_limits<double>::infinity(),std::numeric_limits<double>::infinity(),26.89949,std::numeric_limits<double>::infinity(),
+                31.79899,31.38478,30.97056,30.55635,30.14214,29.72792,29.31371,28.89949,28.48528,28.07107,27.65685,std::numeric_limits<double>::infinity(),4.82843,5.24264,6.24264,7.24264,std::numeric_limits<double>::infinity(),std::numeric_limits<double>::infinity(),27.89949,std::numeric_limits<double>::infinity(),
+                32.79899,std::numeric_limits<double>::infinity(),std::numeric_limits<double>::infinity(),std::numeric_limits<double>::infinity(),std::numeric_limits<double>::infinity(),std::numeric_limits<double>::infinity(),std::numeric_limits<double>::infinity(),std::numeric_limits<double>::infinity(),std::numeric_limits<double>::infinity(),std::numeric_limits<double>::infinity(),std::numeric_limits<double>::infinity(),std::numeric_limits<double>::infinity(),3.82843,4.82843,5.82843,6.82843,std::numeric_limits<double>::infinity(),std::numeric_limits<double>::infinity(),28.89949,std::numeric_limits<double>::infinity(),
+                33.79899,std::numeric_limits<double>::infinity(),std::numeric_limits<double>::infinity(),6.41421,5.41421,4.41421,3.41421,2.41421,1.41421,1.00000,1.41421,2.41421,3.41421,4.41421,5.41421,6.41421,std::numeric_limits<double>::infinity(),std::numeric_limits<double>::infinity(),29.89949,std::numeric_limits<double>::infinity(),
+                34.79899,std::numeric_limits<double>::infinity(),std::numeric_limits<double>::infinity(),6.00000,5.00000,4.00000,3.00000,2.00000,1.00000,0.00000,1.00000,2.00000,3.00000,4.00000,5.00000,6.00000,std::numeric_limits<double>::infinity(),std::numeric_limits<double>::infinity(),30.89949,std::numeric_limits<double>::infinity(),
+                33.79899,std::numeric_limits<double>::infinity(),std::numeric_limits<double>::infinity(),6.41421,5.41421,4.41421,3.41421,2.41421,1.41421,1.00000,1.41421,2.41421,3.41421,4.41421,5.41421,6.41421,std::numeric_limits<double>::infinity(),std::numeric_limits<double>::infinity(),29.89949,std::numeric_limits<double>::infinity(),
+                32.79899,std::numeric_limits<double>::infinity(),std::numeric_limits<double>::infinity(),std::numeric_limits<double>::infinity(),std::numeric_limits<double>::infinity(),std::numeric_limits<double>::infinity(),std::numeric_limits<double>::infinity(),std::numeric_limits<double>::infinity(),std::numeric_limits<double>::infinity(),std::numeric_limits<double>::infinity(),std::numeric_limits<double>::infinity(),std::numeric_limits<double>::infinity(),3.82843,4.82843,5.82843,6.82843,std::numeric_limits<double>::infinity(),std::numeric_limits<double>::infinity(),28.89949,std::numeric_limits<double>::infinity(),
+                31.79899,31.38478,30.97056,30.55635,30.14214,29.72792,29.31371,28.89949,28.48528,28.07107,27.65685,std::numeric_limits<double>::infinity(),4.82843,5.24264,6.24264,7.24264,std::numeric_limits<double>::infinity(),std::numeric_limits<double>::infinity(),27.89949,std::numeric_limits<double>::infinity(),
+                31.38478,30.38478,29.97056,29.55635,29.14214,28.72792,28.31371,27.89949,27.48528,27.07107,26.65685,std::numeric_limits<double>::infinity(),5.82843,6.24264,6.65685,7.65685,std::numeric_limits<double>::infinity(),std::numeric_limits<double>::infinity(),26.89949,std::numeric_limits<double>::infinity(),
+                30.97056,29.97056,28.97056,28.55635,28.14214,27.72792,27.31371,26.89949,26.48528,26.07107,25.65685,std::numeric_limits<double>::infinity(),6.82843,7.24264,7.65685,8.07107,std::numeric_limits<double>::infinity(),std::numeric_limits<double>::infinity(),25.89949,std::numeric_limits<double>::infinity(),
+                30.55635,29.55635,28.55635,27.55635,27.14214,26.72792,26.31371,25.89949,25.48528,25.07107,24.65685,std::numeric_limits<double>::infinity(),7.82843,8.24264,8.65685,9.07107,std::numeric_limits<double>::infinity(),std::numeric_limits<double>::infinity(),24.89949,std::numeric_limits<double>::infinity(),
+                30.14214,29.14214,28.14214,27.14214,26.14214,25.72792,25.31371,24.89949,24.48528,24.07107,23.65685,std::numeric_limits<double>::infinity(),8.82843,9.24264,9.65685,10.07107,std::numeric_limits<double>::infinity(),std::numeric_limits<double>::infinity(),23.89949,std::numeric_limits<double>::infinity(),
+                29.72792,28.72792,27.72792,26.72792,25.72792,24.72792,24.31371,23.89949,23.48528,23.07107,22.65685,std::numeric_limits<double>::infinity(),9.82843,10.24264,10.65685,11.07107,std::numeric_limits<double>::infinity(),std::numeric_limits<double>::infinity(),22.89949,std::numeric_limits<double>::infinity(),
+                29.31371,28.31371,27.31371,26.31371,25.31371,24.31371,23.31371,22.89949,22.48528,22.07107,21.65685,std::numeric_limits<double>::infinity(),10.82843,11.24264,11.65685,12.07107,std::numeric_limits<double>::infinity(),std::numeric_limits<double>::infinity(),21.89949,std::numeric_limits<double>::infinity(),
+                28.89949,27.89949,26.89949,25.89949,24.89949,23.89949,22.89949,21.89949,21.48528,21.07107,20.65685,std::numeric_limits<double>::infinity(),11.82843,12.24264,12.65685,13.07107,std::numeric_limits<double>::infinity(),std::numeric_limits<double>::infinity(),20.89949,std::numeric_limits<double>::infinity(),
+                28.48528,27.48528,26.48528,25.48528,24.48528,23.48528,22.48528,21.48528,20.48528,20.07107,19.65685,std::numeric_limits<double>::infinity(),12.82843,13.24264,13.65685,14.07107,std::numeric_limits<double>::infinity(),std::numeric_limits<double>::infinity(),19.89949,std::numeric_limits<double>::infinity(),
+                28.07107,27.07107,26.07107,25.07107,24.07107,23.07107,22.07107,21.07107,20.07107,19.07107,18.65685,std::numeric_limits<double>::infinity(),13.82843,14.24264,14.65685,15.07107,std::numeric_limits<double>::infinity(),std::numeric_limits<double>::infinity(),18.89949,std::numeric_limits<double>::infinity(),
+                27.65685,26.65685,25.65685,24.65685,23.65685,22.65685,21.65685,20.65685,19.65685,18.65685,17.65685,std::numeric_limits<double>::infinity(),14.82843,15.24264,15.65685,16.07107,16.48528,17.48528,18.48528,std::numeric_limits<double>::infinity(),
+                27.24264,26.24264,25.24264,24.24264,23.24264,22.24264,21.24264,20.24264,19.24264,18.24264,17.24264,16.24264,15.82843,16.24264,16.65685,17.07107,17.48528,17.89949,18.89949,
+                std::numeric_limits<double>::infinity(),std::numeric_limits<double>::infinity(),std::numeric_limits<double>::infinity(),std::numeric_limits<double>::infinity(),std::numeric_limits<double>::infinity(),std::numeric_limits<double>::infinity(),std::numeric_limits<double>::infinity(),std::numeric_limits<double>::infinity(),std::numeric_limits<double>::infinity(),std::numeric_limits<double>::infinity(),std::numeric_limits<double>::infinity(),std::numeric_limits<double>::infinity(),std::numeric_limits<double>::infinity(),std::numeric_limits<double>::infinity(),std::numeric_limits<double>::infinity(),std::numeric_limits<double>::infinity(),std::numeric_limits<double>::infinity(),std::numeric_limits<double>::infinity(),std::numeric_limits<double>::infinity(),std::numeric_limits<double>::infinity(),std::numeric_limits<double>::infinity();
+                        
+        // pmap.setConstant(std::numeric_limits<double>::infinity());
+        // for (auto it = closed.begin(); it != closed.end(); ++it) {
+        //     pmap(it->second->pose.x()-minx_, it->second->pose.y()-miny_) = it->second->cost;
+        // }
     }
 
     void GridAStar::calc_astar_path(Eigen::Vector2d s, Eigen::Vector2d g
