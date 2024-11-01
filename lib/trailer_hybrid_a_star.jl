@@ -55,9 +55,9 @@ end
 function Base.show(io::IO, node::Node)
     println(io, "Node( xind: ", node.xind, "  yind: ", node.yind
                     , "  yawind: ", node.yawind, "  direction: ", node.direction ? "forward" : "backward" 
-                    , "  steer: ", node.steer, "  cost: ", node.cost, "  pind: ", node.pind, ")")
+                    , "  steer: ", node.steer, "  cost: ", node.cost, "  pind: ", node.pind, "poses size: ", length(node.y), ")")
     # println(io, )
-    # println(io)
+    # println(io)"
     # println(io)
     # println(io)
     # # println(io, "  x: ", node.x)
@@ -156,7 +156,8 @@ function calc_hybrid_astar_path(sx::Float64, sy::Float64, syaw::Float64, syaw1::
         delete!(open, c_id)
         closed[c_id] = current
         # println(" c_id ", c_id)
-        println(" current ", current)
+        # println("------------------------node info------------------------")
+        # println(" current ", current)
         # println(" ngoal ", ngoal)
         # println(" gyaw1 ", gyaw1)
         isupdated, fpath = update_node_with_analystic_expantion(current, ngoal, c, ox, oy, kdtree, gyaw1)
@@ -167,7 +168,7 @@ function calc_hybrid_astar_path(sx::Float64, sy::Float64, syaw::Float64, syaw1::
             fnode = fpath
             break
         end
-
+        # println(" -------current poses----------- ", current.x, " ", current.y, " ", current.yaw, " ", current.yaw1)
         inityaw1 = current.yaw1[1]
         # println("-----------------------------------")
         for i in 1:nmotion
@@ -178,7 +179,7 @@ function calc_hybrid_astar_path(sx::Float64, sy::Float64, syaw::Float64, syaw1::
             node_ind = calc_index(node, c)
             # println("-------------node info----------------------")
             # println(" node_ind ", node_ind)
-            println(" node ", node)
+            # println(" node ", node)
             # println("-------------end---------------------")
             # If it is already in the closed set, skip it
             if haskey(closed, node_ind)  continue end
@@ -186,13 +187,13 @@ function calc_hybrid_astar_path(sx::Float64, sy::Float64, syaw::Float64, syaw1::
             if !haskey(open, node_ind)
                 open[node_ind] = node
                 cost_node = calc_cost(node, h_dp, ngoal, c)
-                println(" node_ind ", node_ind, " cost_node ", cost_node)
+                # println(" node_ind ", node_ind, " cost_node ", cost_node)
                 # break
                 enqueue!(pq, node_ind, cost_node)
             else
                 if open[node_ind].cost > node.cost
                     # If so, update the node to have a new parent
-                    println(" open[node_ind].cost ", open[node_ind].cost, " node.cost ", node.cost)
+                    # println(" open[node_ind].cost ", open[node_ind].cost, " node.cost ", node.cost)
                     open[node_ind] = node
                 end
             end
@@ -205,7 +206,7 @@ function calc_hybrid_astar_path(sx::Float64, sy::Float64, syaw::Float64, syaw1::
         # println("-----------------------------------")
         # break
         # counter = counter + 1
-        # if(counter == 1)
+        # if(counter == 2)
         #     break
         # end
     end
@@ -605,7 +606,7 @@ function calc_cost(n::Node, h_dp::Array{Float64}, ngoal::Node, c::Config)
     #     end
     #     println()  # Newline at the end of each row
     # end
-    println(" n.xind ", n.xind, " n.yind ", n.yind, " ", n.xind - c.minx, " ", n.yind - c.miny)
+    # println(" n.xind ", n.xind, " n.yind ", n.yind, " ", n.xind - c.minx, " ", n.yind - c.miny)
     if(n.xind - c.minx < 0)
         println("=======================x======================================================")
     end
@@ -613,7 +614,7 @@ function calc_cost(n::Node, h_dp::Array{Float64}, ngoal::Node, c::Config)
         println("======================y=======================================================")
     end
     total_cost = (n.cost + H_COST*h_dp[n.xind - c.minx, n.yind - c.miny])
-    println(" n.cost ", n.cost, " hp ", h_dp[n.xind - c.minx, n.yind - c.miny], " total: ", total_cost)
+    # println(" n.cost ", n.cost, " hp ", h_dp[n.xind - c.minx, n.yind - c.miny], " total: ", total_cost)
    return total_cost
 
 end

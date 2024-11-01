@@ -182,7 +182,7 @@ namespace planning
         return false;
     }
 
-    void TrailerHybridAStar::get_final_path(std::unordered_map<int, HybridNode*>& closed
+    void TrailerHybridAStar::get_final_path(std::unordered_map<int, HybridNode>& closed
                                                     , HybridNode& ngoal, HybridNode& nstart, HybridPath& path){
 
         Eigen::MatrixXd g_poses = ngoal.poses.colwise().reverse();
@@ -192,35 +192,37 @@ namespace planning
         std::vector<Eigen::MatrixXd> ref_path;
         ref_path.push_back(g_poses);
         int total_rows = g_poses.rows();
-        int total_cols = g_poses.cols();
+        int total_cols = 5;
         std::cout<< "Final path info " << total_cols << " " << total_rows << " " << closed.size() << std::endl;
         
         while(true){
-            std::cout<< "------------d1------------" << std::endl;
+            // std::cout<< "------------d1------------" << std::endl;
             if (closed.find(nid) == closed.end()) {
                 std::cout<< nid << " cant find the requested node" << std::endl;
                 break;
             }
-            std::cout<< "------------d2------------" << std::endl;
-            HybridNode* n = closed[nid];
-            std::cout<< "------------d3------------" << n->poses << std::endl;
-            Eigen::MatrixXd n_poses = n->poses.colwise().reverse();
-            std::cout<< "------------d4------------" << std::endl;
+            // std::cout<< "------------d2------------" << std::endl;
+            HybridNode n = closed[nid];
+            // std::cout<< "------------d3------------" << n.poses << std::endl;
+            Eigen::MatrixXd n_poses = n.poses.colwise().reverse();
+            // std::cout<< "------------d4------------" << std::endl;
             ref_path.push_back(n_poses);
             total_rows += n_poses.rows();
-            nid = n->pind;
-            if (is_same_grid(*n, nstart)){
+            nid = n.pind;
+            if (is_same_grid(n, nstart)){
                 break;
             }
         }
-        std::cout<< "------------d5------------" << std::endl;
+        // std::cout<< "------------d5------------ " << total_rows << std::endl;
         Eigen::MatrixXd final_path(total_rows, total_cols);
         int current_row = 0;
         for (const auto& mat : ref_path) {
+            // std::cout<< "------------d5----1-------- " << mat.rows() << " " << mat.cols() <<  " " << total_cols << std::endl;
             final_path.block(current_row, 0, mat.rows(), mat.cols()) = mat;
+            // std::cout<< "------------d5-----2------" << current_row << std::endl;
             current_row += mat.rows();
         }
-        std::cout<< "------------d6------------" << std::endl;
+        // std::cout<< "------------d6------------" << std::endl;
         // adjuct first direction
         // direction[1] = direction[2];
         if(final_path.rows()>2 && final_path.cols() > 3 ){
@@ -239,9 +241,9 @@ namespace planning
         // int index_y = ((n.yind - config_.miny) < 0) ? 0 : n.yind - config_.miny;
         int index_x = (n.xind - config_.minx) - 1;
         int index_y = (n.yind - config_.miny) - 1;
-        std::cout<< h_dp.rows() << " " << h_dp.cols() << " " << " " << n.xind << " "<< n.yind <<"    index: " <<  index_x << "," << index_y  << std::endl;
+        // std::cout<< h_dp.rows() << " " << h_dp.cols() << " " << " " << n.xind << " "<< n.yind <<"    index: " <<  index_x << "," << index_y  << std::endl;
         double total_cost = n.cost + PlannerParams::H_COST*h_dp(index_x, index_y);
-        std::cout<< " n.cost " << n.cost << " hp " << h_dp(index_x, index_y) << " total: "<< total_cost << std::endl;
+        // std::cout<< " n.cost " << n.cost << " hp " << h_dp(index_x, index_y) << " total: "<< total_cost << std::endl;
         return total_cost;
     }
 
@@ -263,8 +265,8 @@ namespace planning
             kdtree.buildIndex();
             calc_config(obses, xyreso, yawreso);
             
-            std::cout<< " ==========s=== "<< s.transpose() << " " << xyreso << std::endl;
-            std::cout<< " ==========g=== "<< g.transpose() << " " << xyreso  << " " << yawreso << std::endl;
+            // std::cout<< " ==========s=== "<< s.transpose() << " " << xyreso << std::endl;
+            // std::cout<< " ==========g=== "<< g.transpose() << " " << xyreso  << " " << yawreso << std::endl;
             int xind_s = std::round(s[0]/xyreso);
             int yind_s = std::round(s[1]/xyreso);
             int yawind_s = std::round(s[2]/yawreso);
@@ -285,10 +287,10 @@ namespace planning
             // std::cout<< "nstart: " << nstart << std::endl;
             // std::cout<< "ngoal: " << nstart << std::endl;
             
-            std::unordered_map<int, HybridNode*> open;
-            std::unordered_map<int, HybridNode*> closed;
+            std::unordered_map<int, HybridNode> open;
+            std::unordered_map<int, HybridNode> closed;
 
-            open[calc_index(nstart)] = &nstart;
+            open[calc_index(nstart)] = nstart;
 
             std::priority_queue<CostNode, std::vector<CostNode>, CompareCostNode> pq;
             CostNode cost_start(calc_cost(nstart, ngoal), calc_index(nstart));
@@ -303,7 +305,7 @@ namespace planning
             // std::cout<< "   u  d " << nmotion << " " << d.size() << std::endl;
             // print_vec(u);
             // print_vec(d);
-            std::cout<< "   ============================== " << std::endl;
+            // std::cout<< "   ============================== " << std::endl;
             int counter = 0;
             while (true){
                 // break;
@@ -318,7 +320,7 @@ namespace planning
                 CostNode next_node = pq.top();
                 pq.pop();
                 int c_id = next_node.id;
-                HybridNode* current = open[c_id];
+                HybridNode current = open[c_id];
                 // move current node from open to closed
                 // if( (current->pose.x() == ngoal.pose.x())&& (current->pose.y() == ngoal.pose.y())){
                 //     std::cout << " Goal!! " << std::endl;
@@ -330,48 +332,50 @@ namespace planning
                 closed[c_id] = current;
                 HybridNode fpath;
                 // std::cout << " c_id " << c_id << std::endl; 
-                std::cout << " current " << *current << std::endl; 
+                // std::cout<< "------------------------node info------------------------" << std::endl;
+                // std::cout << " current " << current << std::endl; 
                 // std::cout << " ngoal " << ngoal << std::endl; 
                 // std::cout << " gyaw1 " << g[3] << std::endl; 
                  
                 
-                bool isupdated = update_node_with_analystic_expantion(*current, ngoal, obses, kdtree, g[3], fpath);
+                bool isupdated = update_node_with_analystic_expantion(current, ngoal, obses, kdtree, g[3], fpath);
                 // std::cout << " isupdated " << isupdated << std::endl;
                 // std::cout << " fpath " << fpath << std::endl;
                 // break;
                 if (isupdated){
-                    std::cout << " find the path " << fpath << std::endl;
+                    // std::cout << " find the path " << fpath << std::endl;
                     fnode = fpath;
                     break;
                 }
-                double inityaw1 = current->poses.row(0)[3];
+                // std::cout<< " -------current poses----------- " << current.poses << std::endl;
+                double inityaw1 = current.poses.row(0)[3];
                 // std::cout<< " --------------------------------- " << std::endl;
                 for(int i=0; i<nmotion; i++){
-                    HybridNode node = calc_next_node(*current, c_id, u[i], d[i]);
+                    HybridNode node = calc_next_node(current, c_id, u[i], d[i]);
                     if (!verify_index(node, obses, inityaw1, kdtree)){
                         continue;
                     }
                     int node_ind = calc_index(node);
                     // std::cout<< "------------------------node info------------------------" << std::endl;
                     // std::cout<< " node_ind " << node_ind << std::endl;
-                    std::cout<< " node " << node << std::endl;
+                    // std::cout<< " node " << node << std::endl;
                     // std::cout<< "------------------------end----------------------" << std::endl;
                     //  If it is already in the closed set, skip it
                     if (closed.find(node_ind) != closed.end()) {
                         continue;
                     }
                     if (open.find(node_ind) == open.end()) {
-                        open[node_ind] = &node;
+                        open[node_ind] = node;
                         double cost = calc_cost(node, ngoal);
-                        std::cout<< " node_ind " << node_ind << " cost " << cost << std::endl;
+                        // std::cout<< " node_ind " << node_ind << " cost " << cost << std::endl;
                         // break;
                         CostNode cost_node(cost, node_ind);
                         pq.push(cost_node);
                     }else{
-                        if(open[node_ind]->cost > node.cost){
+                        if(open[node_ind].cost > node.cost){
                             // If so, update the node to have a new parent
-                            std::cout<< " open[node_ind]->cost " << open[node_ind]->cost << " " << node.cost << std::endl;
-                            open[node_ind] = &node;
+                            // std::cout<< " open[node_ind].cost " << open[node_ind].cost << " " << node.cost << std::endl;
+                            open[node_ind] = node;
                         }
                     }
 
@@ -383,7 +387,7 @@ namespace planning
                 // std::cout<< " -------------------end-------------- " << std::endl;
             //     break;
             // counter++;
-            // if(counter == 1){
+            // if(counter == 2){
             //     break;
             // }
             }

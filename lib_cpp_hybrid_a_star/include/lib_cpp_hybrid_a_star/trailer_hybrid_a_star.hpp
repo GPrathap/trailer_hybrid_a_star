@@ -78,10 +78,10 @@ namespace planning
             << "yind: " << node.yind << ", "
             << "yawind: " << node.yawind << ", "
             << "direction: " << (node.direction ? "forward" : "backward")
-            // << "poses:\n" << node.poses << ",\n"
             << "steer: " << node.steer << ", "
             << "cost: " << node.cost << ", "
             << "pind: " << node.pind
+            << " poses size : " << node.poses.rows()
             << ")";
             return os;
         }
@@ -174,7 +174,7 @@ namespace planning
                 , HybridNode& ngoal,  Eigen::MatrixXd& obses, grid_search::KDTree& kdtree
                 , double gyaw1, HybridNode& updated_node);
             double calc_cost(HybridNode& n, HybridNode& ngoal);
-            void get_final_path(std::unordered_map<int, HybridNode*>& closed
+            void get_final_path(std::unordered_map<int, HybridNode>& closed
                                                     , HybridNode& ngoal
                                                     , HybridNode& nstart, HybridPath& path);
             bool calc_hybrid_astar_path(Eigen::Vector4d s
