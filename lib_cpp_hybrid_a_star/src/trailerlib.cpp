@@ -230,7 +230,7 @@ namespace planning
             plt::plot(vec_x, vec_y, truckcolor);
         };
 
-        plt::figure();
+        // plt::figure();
         plotOutline(truckOutLine);
         plotOutline(trailerOutLine);
         plotOutline(fr_wheel);
@@ -240,8 +240,8 @@ namespace planning
         plotOutline(tr_wheel);
         plotOutline(tl_wheel);
         plt::plot({x}, {y}, "*");
-        plt::axis("equal");
-        plt::show();
+        // plt::axis("equal");
+        // plt::show();
 
     }
 }

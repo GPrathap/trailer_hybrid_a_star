@@ -50,6 +50,8 @@ int main(int arc, char *argv[]){
 
     planning::HybridPath path;
     planning::TrailerHybridAStar trailer_hybrid_astar;
+    planning::TrailerLib trailer_lib;
+    planning::PlannerParams planner_params;
     bool find_path = trailer_hybrid_astar.calc_hybrid_astar_path(s, g, obss, path);
 
     plt::figure();
@@ -64,11 +66,42 @@ int main(int arc, char *argv[]){
         path_x.push_back(path.poses.row(i)[0]);
         path_y.push_back(path.poses.row(i)[1]);
     }
-    plt::plot(ox, oy, ".r");
-    plt::plot(path_x, path_y, ".y");
-    plt::plot({s.x()}, {s.y()}, "bo"); // Start point
-    plt::plot({g.x()}, {g.y()}, "go");    // End point
-    plt::show();
+    // plt::plot(ox, oy, ".r");
+    // plt::plot(path_x, path_y, ".y");
+    // plt::plot({s.x()}, {s.y()}, "bo"); // Start point
+    // plt::plot({g.x()}, {g.y()}, "go");    // End point
+    // trailer_lib.plot_trailer(s.x(), s.y(), s[2], s[3], 0.0);
+    // trailer_lib.plot_trailer(g.x(), g.y(), g[2], g[3], 0.0);
+    // plt::show();
+
+    Eigen::VectorXd x = path.poses.col(0);
+    Eigen::VectorXd y = path.poses.col(1);
+    Eigen::VectorXd yaw = path.poses.col(2);
+    Eigen::VectorXd yaw1 = path.poses.col(3);
+    Eigen::VectorXd direction = path.poses.col(4);
+
+    double steer = 0.0;
+    for (size_t ii = 0; ii < x.size(); ++ii) {
+        plt::clf();
+        plt::plot(ox, oy, ".r");
+        plt::plot(path_x, path_y, ".y");
+
+        if (ii < x.size() - 1) {
+            double k = (yaw[ii + 1] - yaw[ii]) / planner_params.MOTION_RESOLUTION;
+            if (direction[ii]<0.0) {
+                k *= -1;
+            }
+            steer = std::atan2(planner_params.WB * k, 1.0);  // Equivalent of Julia's `Base.atan(WB*k, 1.0)`
+        } else {
+            steer = 0.0;
+        }
+
+        trailer_lib.plot_trailer(x[ii], y[ii], yaw[ii], yaw1[ii], steer);
+
+        plt::grid(true);
+        plt::axis("equal");
+        plt::pause(0.0001);  // Small pause for animation
+    }
 
 
 
