@@ -33,9 +33,10 @@ namespace rs_paths
             }  
 
             if(l > 0.0){
-                poses.row(ind)[3] = 1;
+                // std::cout<< "positive index: " << ind << " l " << l << std::endl;
+                poses.row(ind)[3] = 1.0;
             }else{
-                poses.row(ind)[3] = -1;
+                poses.row(ind)[3] = -1.0;
             }
     }
 
@@ -849,15 +850,15 @@ namespace rs_paths
                 int npoint = std::abs(trunc(L/step_size)) + static_cast<int>(lengths.size()) + 3;
                 // std::cout<< "========1generate_local_course npoint " << npoint << std::endl;
                 poses = Eigen::MatrixXd::Zero(npoint, 4);
-                int ind = 2;
+                int ind = 1;
                 // std::cout<< "========1generate_local_course  lengths.size()  mode.size() " << lengths.size() << " " << mode.size() << std::endl;
                 // std::cout<< "========1generate_local_course  poses.row(1) " << poses.row(1) << std::endl;
-                if (lengths[1] > 0.0){
-                    poses.row(1)[3] = 1.0;
+                if (lengths[0] > 0.0){
+                    poses.row(0)[3] = 1.0;
                 } else{
-                    poses.row(1)[3] = -1.0;
+                    poses.row(0)[3] = -1.0;
                 } 
-                double d = (lengths[1] > 0.0) ? step_size : -step_size;
+                double d = (lengths[0] > 0.0) ? step_size : -step_size;
                 double pd = d;
                 double ll = 0.0;
                 // std::cout<< "========1generate_local_course  poses.row(1) " << poses.row(1) << std::endl;
@@ -874,7 +875,7 @@ namespace rs_paths
 
                     // std::cout<< "========1generate_local_course  ind  d " << ind << " " << d << std::endl;
 
-                    if ( i >= 2 && (lengths[i-1]*lengths[i])>0.0 ){
+                    if ( i >= 1 && (lengths[i-1]*lengths[i])>0.0 ){
                         pd = -d - ll;
                     } else{
                         pd = d - ll;
@@ -911,7 +912,8 @@ namespace rs_paths
         // std::cout<< "========1calc_paths 0" << std::endl;
         std::for_each(paths.begin(), paths.end(), [&](Path &path) {
             Eigen::MatrixXd poses;
-
+            // std::cout<< "================path.lengths===============================" << std::endl;
+            // printVector(path.lengths);
             generate_local_course(path.L, path.lengths, path.ctypes, maxc, step_size*maxc, poses);
             // std::cout<< "========1calc_paths 1generate_local_course "<< poses.rows() << std::endl;
              // convert global coordinate

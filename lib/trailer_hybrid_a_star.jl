@@ -193,7 +193,7 @@ function calc_hybrid_astar_path(sx::Float64, sy::Float64, syaw::Float64, syaw1::
             else
                 if open[node_ind].cost > node.cost
                     # If so, update the node to have a new parent
-                    # println(" open[node_ind].cost ", open[node_ind].cost, " node.cost ", node.cost)
+                    # println(" open ", open[node_ind].cost, " cost ", node.cost, " id: ", node.pind)
                     open[node_ind] = node
                 end
             end
@@ -229,12 +229,17 @@ function update_node_with_analystic_expantion(current::Node,
                                             )
 
     apath = analystic_expantion(current, ngoal, c, ox, oy, kdtree)
+    # println(" apath ", apath)
     if apath != nothing
+        # println("----analystic_expantion---- ")
         fx = apath.x[2:end]
         fy = apath.y[2:end]
         fyaw =  apath.yaw[2:end]
         steps = MOTION_RESOLUTION*apath.directions
+        # println("steps: ", steps)
+        # println(" yaw: ", apath.yaw)
         yaw1 = trailerlib.calc_trailer_yaw_from_xyyaw(apath.x, apath.y, apath.yaw, current.yaw1[end], steps)
+        # println(" yaw1 ", yaw1[end], " gyaw1 ", gyaw1, " GOAL_TYAW_TH ", GOAL_TYAW_TH, " pi_2_pi ",  rs_path.pi_2_pi(yaw1[end] - gyaw1), " yaw1 ", current.yaw1[end])
         if abs(rs_path.pi_2_pi(yaw1[end] - gyaw1)) >= GOAL_TYAW_TH
             return false, nothing #no update
         end
@@ -562,7 +567,7 @@ function get_final_path(closed::Dict{Int64, Node},
     nid = ngoal.pind
     finalcost = ngoal.cost
 
-    println(" nid ", nid , " ", finalcost)
+    println("Final path info ", nid , " finalcost ", finalcost)
 
     while true
         n = closed[nid]
@@ -587,6 +592,9 @@ function get_final_path(closed::Dict{Int64, Node},
     direction[1] = direction[2]
 
     path = Path(rx, ry, ryaw, ryaw1, direction, finalcost)
+
+    # println(" final_path length ",length(rx));
+    # println(" final_path length ", ryaw);
 
     return path
 end
@@ -674,26 +682,30 @@ function main()
     yaw = path.yaw
     yaw1 = path.yaw1
     direction = path.direction
-
+    println("direction: ", direction)
     steer = 0.0
-    for ii in 1:length(x)
+    for ii in 50:80
         cla()
         plot(oox, ooy, ".k")
         plot(x, y, "-r", label="Hybrid A* path")
 
         if ii < length(x)-1
             k = (yaw[ii+1] - yaw[ii])/MOTION_RESOLUTION
+            println("k: ", direction[ii], ",", ii)
             if !direction[ii]
+                # println("index: ", direction[ii])
                 k *= -1
             end
             steer = Base.atan(WB*k, 1.0)
         else
+            println("index: ", ii)
             steer = 0.0
         end
         trailerlib.plot_trailer.(x[ii], y[ii], yaw[ii], yaw1[ii], steer)
         grid(true)
         axis("equal")
         pause(0.0001)
+        println("steer: ", x[ii], "," ,y[ii], "," ,yaw[ii],  ",",yaw1[ii], "," ,steer)
     end
     println("Done")
     axis("equal")

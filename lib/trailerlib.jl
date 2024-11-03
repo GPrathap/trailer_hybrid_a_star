@@ -125,12 +125,16 @@ function calc_trailer_yaw_from_xyyaw(
     tyaw = fill(0.0, length(x))
     tyaw[1] = init_tyaw
     # println(" tyaw ", yaw)
+    # println(" steps              ", steps)
     # println(" =================yaw================ ")
     for i in 2:length(x)
-        tyaw[i] += tyaw[i-1] + steps[i-1]/LT*sin(yaw[i-1] - tyaw[i-1])
+        delta_theta =  steps[i-1]/LT*sin(yaw[i-1] - tyaw[i-1])
+        tyaw[i] += tyaw[i-1] + delta_theta
         # println("i ,yaw diff ", i, " ", steps[i-1], "  ", LT*sin(yaw[i-1] - tyaw[i-1]))
-    end
+        # println(" yaw_from_xyyaw " , yaw[i-1] , " " , tyaw[i-1] , " " , delta_theta , " i " , i, " steps[i-1] ", steps[i-1])
 
+    end
+    # println(" tyaw ", tyaw)
     return tyaw
 end
 
@@ -163,7 +167,7 @@ function check_trailer_collision(
     collision check function for trailer
 
     """
-
+    return true
     if kdtree == nothing
         kdtree = KDTree(hcat(ox, oy)')
     end

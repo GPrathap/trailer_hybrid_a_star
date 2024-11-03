@@ -155,21 +155,24 @@ namespace planning
             rs_paths::Path apath;
             
             bool find_path = analystic_expantion(current, ngoal, obses, kdtree, apath);
-            // std::cout<< "----analystic_expantion---- " << find_path << std::endl;
             if(find_path){
+                // std::cout<< "----analystic_expantion---- " << find_path << std::endl;
                 Eigen::VectorXd steps = apath.poses.col(3).array()*PlannerParams::MOTION_RESOLUTION;
                 Eigen::VectorXd current_pose = current.poses.row(current.poses.rows()-1);
                 Eigen::VectorXd yaw1;
-                bool can_estimate = trailerlib_.calc_trailer_yaw_from_xyyaw(apath.poses, current_pose[4], steps, yaw1);
-                if(!can_estimate){
-                    return false;
-                }
+                // std::cout<< "steps: " << steps.transpose() << std::endl;
+                // std::cout<< "yaw: " << apath.poses.col(2).transpose() << std::endl;
+                bool can_estimate = trailerlib_.calc_trailer_yaw_from_xyyaw(apath.poses, current_pose[3], steps, yaw1);
+                // if(!can_estimate){
+                //     return false;
+                // }
+                // std::cout<< " yaw1 " << yaw1[yaw1.size()-1] << " gyaw1 " << gyaw1 << " GOAL_TYAW_TH " << PlannerParams::GOAL_TYAW_TH << " pi_to_pi " << math_utility::pi_to_pi(yaw1[yaw1.size()-1] - gyaw1) << " yaw1 "<< current_pose[3] << std::endl;
                 if (std::abs(math_utility::pi_to_pi(yaw1[yaw1.size()-1] - gyaw1)) >= PlannerParams::GOAL_TYAW_TH){
                     return false;
                 }
                 double fcost = current.cost + calc_rs_path_cost(apath, yaw1);
                 int fpind = calc_index(current);
-                std::cout<< "----analystic_expantion---- fcost " << fcost << std::endl;
+                // std::cout<< "----analystic_expantion---- fcost " << fcost << std::endl;
                 
                 // to get rows from index 1 to the end (2nd to last rows)
                 Eigen::MatrixXd updated_poses = apath.poses.block(1, 0, apath.poses.rows() - 1, apath.poses.cols());
@@ -182,6 +185,7 @@ namespace planning
         return false;
     }
 
+
     void TrailerHybridAStar::get_final_path(std::unordered_map<int, HybridNode>& closed
                                                     , HybridNode& ngoal, HybridNode& nstart, HybridPath& path){
 
@@ -193,7 +197,7 @@ namespace planning
         ref_path.push_back(g_poses);
         int total_rows = g_poses.rows();
         int total_cols = 5;
-        std::cout<< "Final path info " << total_cols << " " << total_rows << " " << closed.size() << std::endl;
+        std::cout<< "Final path info "<< nid << " finalcost " << finalcost << std::endl;
         
         while(true){
             // std::cout<< "------------d1------------" << std::endl;
@@ -222,16 +226,21 @@ namespace planning
             // std::cout<< "------------d5-----2------" << current_row << std::endl;
             current_row += mat.rows();
         }
-        // std::cout<< "------------d6------------" << std::endl;
+        // std::cout<< "------------d6------------" << final_path << " " << final_path.cols() << std::endl;
         // adjuct first direction
         // direction[1] = direction[2];
-        if(final_path.rows()>2 && final_path.cols() > 3 ){
-            final_path.row(0)[3] = final_path.row(1)[3];
-            HybridPath path_final(final_path, finalcost);
+        Eigen::MatrixXd final_path_up  = final_path.colwise().reverse();
+        // std::cout<< "------------d6------------" << final_path << " " << final_path.cols() << std::endl;
+        if(final_path_up.rows() > 2 && final_path_up.cols() > 3 ){
+            final_path_up.row(0)[3] = final_path_up.row(1)[3];
+            HybridPath path_final(final_path_up, finalcost);
             path = path_final;
         }else{
             std::cout << "Path can not be found..." << std::endl;
         }
+
+        // std::cout<< " final_path length " << final_path_up.rows() << std::endl;
+        // std::cout<< " final_path length " << final_path_up.col(2).transpose() << std::endl;
         
     }
 
@@ -374,7 +383,7 @@ namespace planning
                     }else{
                         if(open[node_ind].cost > node.cost){
                             // If so, update the node to have a new parent
-                            // std::cout<< " open[node_ind].cost " << open[node_ind].cost << " " << node.cost << std::endl;
+                            // std::cout<< " open " << open[node_ind].cost << " cost " << node.cost << " id: " << node.pind << std::endl;
                             open[node_ind] = node;
                         }
                     }
@@ -393,7 +402,7 @@ namespace planning
             }
 
             
-            std::cout<< "final expand node:" << open.size() + closed.size() << std::endl;
+            // std::cout<< "final expand node:" << open.size() + closed.size() << std::endl;
             get_final_path(closed, fnode, nstart, path);
             return true;
     }

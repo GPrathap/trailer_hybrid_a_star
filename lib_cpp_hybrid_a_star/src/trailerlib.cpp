@@ -84,24 +84,29 @@ namespace planning
                                                         , Eigen::VectorXd& steps, Eigen::VectorXd& yaws){
         Eigen::VectorXd yaw = poses.col(2);
         // std::cout<< " yaw_from_xyyaw " << yaw.transpose() << std::endl;
+        // std::cout<< " steps---------- " << steps.transpose() << std::endl;
         yaws.resize(yaw.size());
+        yaws.setZero();
+
         yaws[0] = init_tyaw;
+        // std::cout<< " =================yaw================ " << std::endl;
         for(int i=1; i<yaws.size(); i++){
             double steps_d =  steps[i-1];
             double delta_theta = (steps_d/VehicleParams::LT)*sin(yaw[i-1] - yaws[i-1]);
             yaws[i] += yaws[i-1] + delta_theta;
-            // std::cout<< " yaw_from_xyyaw " << yaw[i-1] << " " << yaws[i-1] << " " << delta_theta << std::endl;
+            // std::cout<< " yaw_from_xyyaw " << yaw[i-1] << " " << yaws[i-1] << " " << delta_theta << " i " << i << steps_d << std::endl;
             if(std::isnan(delta_theta)){
                 std::cout<< " yaw_from_xyyaw " << yaw[i-1] << " " << yaws[i-1] << " " << i << std::endl;
                 return false;
             }
         }
+        // std::cout<< " yaw1 " << yaws.transpose() << std::endl;
         return true;
     } 
 
     bool TrailerLib::check_trailer_collision(const Eigen::MatrixXd& obses
                                     , Eigen::MatrixXd& poses, grid_search::KDTree& kd_tree){
-                    
+        return true;
         std::vector<double> vrxt = {VehicleParams::LTF, VehicleParams::LTF, -VehicleParams::LTB
                                     , -VehicleParams::LTB, VehicleParams::LTF};
         std::vector<double> vryt = {-VehicleParams::W/2.0, VehicleParams::W/2.0

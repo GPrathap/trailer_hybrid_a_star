@@ -83,6 +83,8 @@ function calc_paths(sx::Float64, sy::Float64, syaw::Float64,
 
     paths = generate_path(q0, q1, maxc)
     for path in paths
+        # println("================path.lengths===============================")
+        # println(path.lengths)
         x, y, yaw, directions = generate_local_course(path.L, path.lengths, path.ctypes, maxc, step_size*maxc)
 
         # convert global coordinate
@@ -708,6 +710,7 @@ function interpolate(ind::Int64, l::Float64, m::String, maxc::Float64,
     end
 
     if l > 0.0
+        # println("positive index: ", ind, " l ", l);
         directions[ind] = 1
     else
         directions[ind] = -1
@@ -884,12 +887,12 @@ function main()
     println(PROGRAM_FILE," start!!")
     # test()
 
-    start_x = 3.0  # [m]
+    start_x = 14.0  # [m]
     start_y = 10.0  # [m]
-    start_yaw = deg2rad(40.0)  # [rad]
+    start_yaw = deg2rad(0.0)  # [rad]
     end_x = 0.0  # [m]
-    end_y = 1.0  # [m]
-    end_yaw = deg2rad(0.0)  # [rad]
+    end_y = 0.0  # [m]
+    end_yaw = deg2rad(90.0)  # [rad]
     max_curvature = 0.1
 
     @time bpath = calc_shortest_path(
