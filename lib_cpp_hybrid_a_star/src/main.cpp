@@ -142,29 +142,29 @@ int main(int arc, char *argv[]){
     Eigen::VectorXd x = path.poses.col(0);
     Eigen::VectorXd y = path.poses.col(1);
     Eigen::VectorXd yaw = path.poses.col(2);
-    Eigen::VectorXd yaw1 = path.poses.col(3);
-    Eigen::VectorXd direction = path.poses.col(4);
-    std::cout<< direction.transpose() << std::endl;
+    Eigen::VectorXd yaw1 = path.poses.col(4);
+    Eigen::VectorXd direction = path.poses.col(3);
+    // std::cout<< direction.transpose() << std::endl;
     double steer = 0.0;
-    for (size_t ii = 50; ii < 80; ++ii) {
+    for (size_t ii = 0; ii < x.size(); ++ii) {
         plt::clf();
         plt::plot(ox, oy, ".r");
         plt::plot(path_x, path_y, ".y");
 
         if (ii < x.size() - 1) {
             double k = (yaw[ii + 1] - yaw[ii]) / planner_params.MOTION_RESOLUTION;
-            std::cout<< " k: " << direction[ii] << "," << ii << std::endl;
+            // std::cout<< " k: " << direction[ii] << "," << ii << std::endl;
             if (direction[ii]< 0.0) {
                 // std::cout<< " k: " << direction[ii] << "," << ii << std::endl;
                 k *= -1.0;
             }
             steer = std::atan2(planner_params.WB * k, 1.0);  // Equivalent of Julia's `Base.atan(WB*k, 1.0)`
         } else {
-            std::cout<< " index: " << ii << std::endl;
+            // std::cout<< " index: " << ii << std::endl;
             steer = 0.0;
         }
         // std::cout<< " steer: " << steer << std::endl;
-        std::cout<< x[ii]<< "," << y[ii]<< ","<< yaw[ii]<< ","<<yaw1[ii]<< "," <<steer<< std::endl;
+        // std::cout<< x[ii]<< "," << y[ii]<< ","<< yaw[ii]<< ","<<yaw1[ii]<< "," <<steer<< std::endl;
 
         trailer_lib.plot_trailer(x[ii], y[ii], yaw[ii], yaw1[ii], steer);
 

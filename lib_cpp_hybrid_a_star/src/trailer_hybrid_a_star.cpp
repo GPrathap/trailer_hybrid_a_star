@@ -172,10 +172,24 @@ namespace planning
                 }
                 double fcost = current.cost + calc_rs_path_cost(apath, yaw1);
                 int fpind = calc_index(current);
+
+                // for(int i=1; i<apath.poses.rows(); i++){
+                //     double d = apath.poses.row(i)[3];
+                //     if(d > 0){
+
+                //     }
+                // }
                 // std::cout<< "----analystic_expantion---- fcost " << fcost << std::endl;
                 
                 // to get rows from index 1 to the end (2nd to last rows)
-                Eigen::MatrixXd updated_poses = apath.poses.block(1, 0, apath.poses.rows() - 1, apath.poses.cols());
+                Eigen::MatrixXd updated_poses(apath.poses.rows() - 1, apath.poses.cols()+1);
+
+                std::cout<< "----updated_poses " << updated_poses.rows() << "," << updated_poses.cols() << " " << yaw1.size() << std::endl;
+
+                updated_poses.block(0, 0, apath.poses.rows() - 1, apath.poses.cols()) = apath.poses.block(1, 0, apath.poses.rows() - 1, apath.poses.cols());
+                updated_poses.col(4) = yaw1.head(yaw1.size()-1);
+                
+                
                 double  fsteer = 0.0;
                 HybridNode est_node(current.xind, current.yind, current.yawind
                             , current.direction, updated_poses, fsteer, fcost, fpind);
@@ -188,8 +202,11 @@ namespace planning
 
     void TrailerHybridAStar::get_final_path(std::unordered_map<int, HybridNode>& closed
                                                     , HybridNode& ngoal, HybridNode& nstart, HybridPath& path){
-
+        
+        std::cout<< "directions goal "<< ngoal.poses.rows() << " " <<  ngoal.poses.cols() << std::endl;
         Eigen::MatrixXd g_poses = ngoal.poses.colwise().reverse();
+        // std::cout<< " g_poses directions "<< g_poses << std::endl;
+        std::cout<< "directions "<< g_poses.rows() << " " <<  g_poses.cols() << std::endl;
 
         int nid = ngoal.pind;
         int finalcost = ngoal.cost;
@@ -197,7 +214,8 @@ namespace planning
         ref_path.push_back(g_poses);
         int total_rows = g_poses.rows();
         int total_cols = 5;
-        std::cout<< "Final path info "<< nid << " finalcost " << finalcost << std::endl;
+        // std::cout<< "Final path info "<< nid << " finalcost " << finalcost << std::endl;
+        
         
         while(true){
             // std::cout<< "------------d1------------" << std::endl;
@@ -384,6 +402,7 @@ namespace planning
                         if(open[node_ind].cost > node.cost){
                             // If so, update the node to have a new parent
                             // std::cout<< " open " << open[node_ind].cost << " cost " << node.cost << " id: " << node.pind << std::endl;
+                            // std::cout<< " open " << open[node_ind].poses.col(4).transpose() << std::endl;
                             open[node_ind] = node;
                         }
                     }

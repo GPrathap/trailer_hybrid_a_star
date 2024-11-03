@@ -684,7 +684,7 @@ function main()
     direction = path.direction
     println("direction: ", direction)
     steer = 0.0
-    for ii in 50:80
+    for ii in 1:length(x)
         cla()
         plot(oox, ooy, ".k")
         plot(x, y, "-r", label="Hybrid A* path")
