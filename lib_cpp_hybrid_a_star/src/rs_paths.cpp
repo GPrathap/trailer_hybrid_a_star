@@ -162,6 +162,7 @@ namespace rs_paths
         double t1;
         double v;
         polar(x + sin(phi), y - 1.0 - cos(phi), u1, t1);
+        u1 = std::pow(u1, 2);
         if(u1 >= 4.0){
             double u = sqrt(u1 - 4.0);
             double theta = atan2(2.0, u);
@@ -248,11 +249,11 @@ namespace rs_paths
         double xi = x - sin(phi);
         double eta = y - 1.0 + cos(phi);
         double rho, theta;
-        polar(-eta, xi, rho, theta);
+        polar(xi, eta, rho, theta);
         if (rho >= 2.0){
             double r = sqrt(rho*rho - 4.0);
-            double t = mod2pi(theta + atan2(r, -2.0));
             double u = 2.0 - r;
+            double t = mod2pi(theta + atan2(r, -2.0));
             double v = mod2pi(phi - 0.5*M_PI - t);
             if (t >= 0.0 && u<=0.0 && v<=0.0){
                 p_up << t, u, v;
@@ -629,7 +630,7 @@ namespace rs_paths
             set_path(paths, lengths, ctypes);
         }
 
-        flag = LRLRn(Eigen::Vector3d(-x, -y, phi), p_up);
+        flag = LRSLR(Eigen::Vector3d(-x, -y, phi), p_up);
         if(flag){
             double t = p_up[0];
             double u = p_up[1];
@@ -733,7 +734,7 @@ namespace rs_paths
     }
 
     void RSPaths::CSC(const Eigen::Vector3d& p, std::vector<Path>& paths){
-
+        // std::cout<< "pose: " << p.transpose() << std::endl;
         double x = p.x();
         double y = p.y();
         double phi = p.z();
@@ -761,6 +762,7 @@ namespace rs_paths
             std::vector<std::string> ctypes = {"L","S","L"};
             set_path(paths, lengths, ctypes);
         }
+        //  std::cout<< "==========csc v3" << std::endl;
 
         flag = LSL(Eigen::Vector3d(x, -y, -phi), p_up);
         if(flag){
@@ -771,6 +773,7 @@ namespace rs_paths
             std::vector<std::string> ctypes = {"R","S","R"};
             set_path(paths, lengths, ctypes);
         }
+        //  std::cout<< "==========csc v4" << std::endl;
 
         flag = LSL(Eigen::Vector3d(-x, -y, phi), p_up);
         if(flag){
@@ -781,7 +784,7 @@ namespace rs_paths
             std::vector<std::string> ctypes = {"R","S","R"};
             set_path(paths, lengths, ctypes);
         }
-
+        //  std::cout<< "==========csc v5" << std::endl;
         flag = LSR(Eigen::Vector3d(x, y, phi), p_up);
         if(flag){
             double t = p_up[0];
@@ -834,11 +837,11 @@ namespace rs_paths
         double y = (-s*dx + c*dy)*maxc;
         Eigen::Vector3d p_est(x, y, dth);
         SCS(p_est, paths);
-        // CSC(p_est, paths);
-        // CCC(p_est, paths);
-        // CCCC(p_est, paths);
-        // CCSC(p_est, paths);
-        // CCSCC(p_est, paths);
+        CSC(p_est, paths);
+        CCC(p_est, paths);
+        CCCC(p_est, paths);
+        CCSC(p_est, paths);
+        CCSCC(p_est, paths);
         // std::cout<< "==========CCSCC========" << std::endl;
         
     }

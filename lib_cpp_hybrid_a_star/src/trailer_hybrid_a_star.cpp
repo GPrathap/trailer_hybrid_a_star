@@ -166,7 +166,7 @@ namespace planning
                 // if(!can_estimate){
                 //     return false;
                 // }
-                // std::cout<< " yaw1 " << yaw1[yaw1.size()-1] << " gyaw1 " << gyaw1 << " GOAL_TYAW_TH " << PlannerParams::GOAL_TYAW_TH << " pi_to_pi " << math_utility::pi_to_pi(yaw1[yaw1.size()-1] - gyaw1) << " yaw1 "<< current_pose[3] << std::endl;
+                std::cout<< "id: "<< current.pind << " yaw1 " << yaw1[yaw1.size()-1] << " gyaw1 " << gyaw1  << " pi_to_pi " << math_utility::pi_to_pi(yaw1[yaw1.size()-1] - gyaw1) << " yaw1 "<< current_pose[3] << std::endl;
                 if (std::abs(math_utility::pi_to_pi(yaw1[yaw1.size()-1] - gyaw1)) >= PlannerParams::GOAL_TYAW_TH){
                     return false;
                 }
@@ -187,8 +187,10 @@ namespace planning
                 std::cout<< "----updated_poses " << updated_poses.rows() << "," << updated_poses.cols() << " " << yaw1.size() << std::endl;
 
                 updated_poses.block(0, 0, apath.poses.rows() - 1, apath.poses.cols()) = apath.poses.block(1, 0, apath.poses.rows() - 1, apath.poses.cols());
-                updated_poses.col(4) = yaw1.head(yaw1.size()-1);
+                updated_poses.col(4) = updated_poses.col(3);
+                updated_poses.col(3) = yaw1.head(yaw1.size()-1);
                 
+                // std::cout<< updated_poses.col(3).transpose() << std::endl;
                 
                 double  fsteer = 0.0;
                 HybridNode est_node(current.xind, current.yind, current.yawind
@@ -225,6 +227,7 @@ namespace planning
             }
             // std::cout<< "------------d2------------" << std::endl;
             HybridNode n = closed[nid];
+            // std::cout<< " inter directions "<< n.poses << std::endl;
             // std::cout<< "------------d3------------" << n.poses << std::endl;
             Eigen::MatrixXd n_poses = n.poses.colwise().reverse();
             // std::cout<< "------------d4------------" << std::endl;
@@ -369,6 +372,10 @@ namespace planning
                 // std::cout << " isupdated " << isupdated << std::endl;
                 // std::cout << " fpath " << fpath << std::endl;
                 // break;
+                // counter++;
+                // if(counter == 4){
+                //     break;
+                // }
                 if (isupdated){
                     // std::cout << " find the path " << fpath << std::endl;
                     fnode = fpath;
@@ -408,20 +415,17 @@ namespace planning
                     }
 
                     // counter++;
-                    // if(counter == 5){
+                    // if(counter == 4){
                     //     break;
                     // }
                 }
                 // std::cout<< " -------------------end-------------- " << std::endl;
             //     break;
-            // counter++;
-            // if(counter == 2){
-            //     break;
-            // }
+                
             }
 
             
-            // std::cout<< "final expand node:" << open.size() + closed.size() << std::endl;
+            std::cout<< "final expand node:" << open.size() + closed.size() << std::endl;
             get_final_path(closed, fnode, nstart, path);
             return true;
     }
@@ -456,9 +460,9 @@ namespace planning
             Eigen::VectorXd yaw1;
             // std::cout <<  "======d 1" << std::endl;
             bool can_estimate = trailerlib_.calc_trailer_yaw_from_xyyaw(path.poses, current_pose[3], steps, yaw1);
-            if(!can_estimate){
-                return false;
-            }
+            // if(!can_estimate){
+            //     return false;
+            // }
             // std::cout <<  "======d 2" << std::endl;
             path.cost = calc_rs_path_cost(path, yaw1);
             // std::cout << " 1analystic_expantion path.cost "<< path.cost << std::endl;
@@ -472,9 +476,9 @@ namespace planning
             Eigen::VectorXd steps = path.poses.col(3).array()*PlannerParams::MOTION_RESOLUTION;
             Eigen::VectorXd yaws1;
             bool can_estimate = trailerlib_.calc_trailer_yaw_from_xyyaw(node.poses, current_pose[3], steps, yaws1);
-            if(!can_estimate){
-                return false;
-            }
+            // if(!can_estimate){
+            //     return false;
+            // }
             std::vector<int> indices;
             for(int i=0; i<node.poses.rows(); i+=PlannerParams::SKIP_COLLISION_CHECK){
                 indices.push_back(i);

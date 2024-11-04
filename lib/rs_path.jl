@@ -254,6 +254,7 @@ end
 
 
 function CSC(x::Float64, y::Float64, phi::Float64, paths::Array{Path})
+    # println("pose: ", x, ",", y, ",", phi)
     flag, t, u, v = LSL(x, y, phi) 
     if flag
         paths = set_path(paths, [t, u, v], ["L","S","L"])
@@ -731,11 +732,11 @@ function generate_path(q0::Array{Float64}, q1::Array{Float64}, maxc::Float64)::A
 
     paths = Path[]
     paths = SCS(x, y, dth, paths)
-    # paths = CSC(x, y, dth, paths)
-    # paths = CCC(x, y, dth, paths)
-    # paths = CCCC(x, y, dth, paths)
-    # paths = CCSC(x, y, dth, paths)
-    # paths = CCSCC(x, y, dth, paths)
+    paths = CSC(x, y, dth, paths)
+    paths = CCC(x, y, dth, paths)
+    paths = CCCC(x, y, dth, paths)
+    paths = CCSC(x, y, dth, paths)
+    paths = CCSCC(x, y, dth, paths)
 
     return paths
 end

@@ -164,6 +164,10 @@ function calc_hybrid_astar_path(sx::Float64, sy::Float64, syaw::Float64, syaw1::
         # println(" isupdated ", isupdated)
         # println(" fpath ", fpath)
         # break
+        # counter = counter + 1
+        # if(counter == 4)
+        #     break
+        # end
         if isupdated # found
             fnode = fpath
             break
@@ -205,10 +209,7 @@ function calc_hybrid_astar_path(sx::Float64, sy::Float64, syaw::Float64, syaw1::
         end
         # println("-----------------------------------")
         # break
-        # counter = counter + 1
-        # if(counter == 2)
-        #     break
-        # end
+        
     end
 
     println("final expand node:", length(open) + length(closed))
@@ -239,7 +240,7 @@ function update_node_with_analystic_expantion(current::Node,
         # println("steps: ", steps)
         # println(" yaw: ", apath.yaw)
         yaw1 = trailerlib.calc_trailer_yaw_from_xyyaw(apath.x, apath.y, apath.yaw, current.yaw1[end], steps)
-        # println(" yaw1 ", yaw1[end], " gyaw1 ", gyaw1, " GOAL_TYAW_TH ", GOAL_TYAW_TH, " pi_2_pi ",  rs_path.pi_2_pi(yaw1[end] - gyaw1), " yaw1 ", current.yaw1[end])
+        println("id: ",current.pind, " yaw1 ", yaw1[end], " gyaw1 ", gyaw1, " pi_2_pi ",  rs_path.pi_2_pi(yaw1[end] - gyaw1), " yaw1 ", current.yaw1[end])
         if abs(rs_path.pi_2_pi(yaw1[end] - gyaw1)) >= GOAL_TYAW_TH
             return false, nothing #no update
         end
@@ -682,7 +683,7 @@ function main()
     yaw = path.yaw
     yaw1 = path.yaw1
     direction = path.direction
-    println("direction: ", direction)
+    # println("direction: ", direction)
     steer = 0.0
     for ii in 1:length(x)
         cla()
@@ -691,21 +692,21 @@ function main()
 
         if ii < length(x)-1
             k = (yaw[ii+1] - yaw[ii])/MOTION_RESOLUTION
-            println("k: ", direction[ii], ",", ii)
+            # println("k: ", direction[ii], "   |,", ii)
             if !direction[ii]
                 # println("index: ", direction[ii])
                 k *= -1
             end
             steer = Base.atan(WB*k, 1.0)
         else
-            println("index: ", ii)
+            # println("index: ", ii)
             steer = 0.0
         end
         trailerlib.plot_trailer.(x[ii], y[ii], yaw[ii], yaw1[ii], steer)
         grid(true)
         axis("equal")
         pause(0.0001)
-        println("steer: ", x[ii], "," ,y[ii], "," ,yaw[ii],  ",",yaw1[ii], "," ,steer)
+        # println("steer: ", x[ii], "," ,y[ii], "," ,yaw[ii],  ",",yaw1[ii], "," ,steer)
     end
     println("Done")
     axis("equal")

@@ -61,10 +61,9 @@ function calc_dist_policy(gx::Float64, gy::Float64,
             # println(" current pose ", current.x, " ", current.y)
             node = Node(current.x+motion[i,1], current.y+motion[i,2], current.cost+motion[i,3], c_id)
             
-           
-            # println(" current->pind ", node.pind)
+            # println(" node->pind ", node.pind)
             if !verify_node(node, minx, miny, xw, yw, obmap)
-                # println("not veried ")
+                # println("not veried ", node.x, " ", node.y)
                 continue
             end
 
@@ -80,10 +79,11 @@ function calc_dist_policy(gx::Float64, gy::Float64,
                     open[node_ind].cost = node.cost
                     open[node_ind].pind = c_id
                     # println(" open node  ", node.x, " ", node.y, " ", c_id, " ", node.cost)
+                    # return
                 end
             else # add to open set
                 open[node_ind] = node
-                # println(" close node ", node.pind)
+                # println(" close node ", node.pind, " cost: ", node.cost, " pose: ", node.x, " ", node.y )
                 enqueue!(pq, calc_index(node, xw, minx, miny), node.cost)
             end
         end
@@ -94,7 +94,7 @@ function calc_dist_policy(gx::Float64, gy::Float64,
         # break;
     end
 
-    println("  length(closed)  ", length(closed))
+    println(" grid search length(closed)  ", length(closed))
     pmap = calc_policy_map(closed, xw, yw, minx, miny)
 
     return pmap
@@ -267,7 +267,7 @@ function calc_obstacle_map(ox::Array{Float64}, oy::Array{Float64}, reso::Float64
             y = iy + miny
             idxs, onedist = knn(kdtree, [x, y] , 1)
             if onedist[1] <= vr/reso 
-                obmap[ix,iy] = true
+                # obmap[ix,iy] = true
             end
         end
     end

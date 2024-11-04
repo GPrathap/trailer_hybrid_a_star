@@ -34,6 +34,9 @@ namespace grid_search
             pind = id;
         }
 
+        Node(){
+        }
+
     };
 
     typedef struct CostNode
@@ -48,7 +51,7 @@ namespace grid_search
 
     struct CompareNode {
         bool operator()(const CostNode& a, const CostNode& b) {
-            return a.cost > b.cost;
+            return a.cost >= b.cost;
         }
     };
     
@@ -81,10 +84,10 @@ namespace grid_search
             double h(int x, int y);
             double calc_cost(const Node& n, const Node& ngoal);
             Eigen::MatrixXd get_motion_model();
-            bool verify_node(Node* node);
-            void calc_policy_map(std::unordered_map<int, Node*>& closed
+            bool verify_node(Node node);
+            void calc_policy_map(std::unordered_map<int, Node>& closed
                     ,  Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic>& pmap);
-            void get_final_path(std::unordered_map<int, Node*>& closed, const Node ngoal, const Node nstart
+            void get_final_path(std::unordered_map<int, Node>& closed, const Node ngoal, const Node nstart
                             , const double reso);
             void calc_astar_path(Eigen::Vector2d s, Eigen::Vector2d g
                         , Eigen::MatrixXd obses, double reso, double vr);

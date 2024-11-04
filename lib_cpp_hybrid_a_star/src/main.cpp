@@ -142,8 +142,8 @@ int main(int arc, char *argv[]){
     Eigen::VectorXd x = path.poses.col(0);
     Eigen::VectorXd y = path.poses.col(1);
     Eigen::VectorXd yaw = path.poses.col(2);
-    Eigen::VectorXd yaw1 = path.poses.col(4);
-    Eigen::VectorXd direction = path.poses.col(3);
+    Eigen::VectorXd yaw1 = path.poses.col(3);
+    Eigen::VectorXd direction = path.poses.col(4);
     // std::cout<< direction.transpose() << std::endl;
     double steer = 0.0;
     for (size_t ii = 0; ii < x.size(); ++ii) {
