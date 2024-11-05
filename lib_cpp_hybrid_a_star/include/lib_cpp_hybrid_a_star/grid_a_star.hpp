@@ -80,13 +80,13 @@ namespace grid_search
             void calc_dist_policy(Eigen::Vector2d g
                             , Eigen::MatrixXd obses, double reso, double vr
                             , Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic>& pmap);
-            int calc_index(const Node& node);
-            double h(int x, int y);
-            double calc_cost(const Node& n, const Node& ngoal);
-            Eigen::MatrixXd get_motion_model();
-            bool verify_node(Node node);
+            int calc_index(const Node& node) const;
+            double h(int x, int y) const;
+            double calc_cost(const Node& n, const Node& ngoal) const;
+            Eigen::MatrixXd get_motion_model() const;
+            bool verify_node(Node node) const;
             void calc_policy_map(std::unordered_map<int, Node>& closed
-                    ,  Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic>& pmap);
+                    ,  Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic>& pmap) const;
             void get_final_path(std::unordered_map<int, Node>& closed, const Node ngoal, const Node nstart
                             , const double reso);
             void calc_astar_path(Eigen::Vector2d s, Eigen::Vector2d g

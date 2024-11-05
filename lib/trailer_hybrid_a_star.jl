@@ -121,11 +121,17 @@ function calc_hybrid_astar_path(sx::Float64, sy::Float64, syaw::Float64, syaw1::
     kdtree = KDTree(hcat(ox, oy)')
     # println(" ==========s=== ", sx, sy, syaw, syaw1, xyreso, yawreso);
     # println(" ==========g=== ", gx, gy, gyaw, gyaw1, xyreso, yawreso);
-            
+    println("--------------beforeee-------------")
+    println(ox)
+    println("--------------beforeee-------------")
+    println(oy)
+
     c = calc_config(ox, oy, xyreso, yawreso)
     nstart = Node(round(Int64,sx/xyreso), round(Int64,sy/xyreso), round(Int64, syaw/yawreso),true,[sx],[sy],[syaw],[syaw1],[true],0.0,0.0, -1)
     ngoal = Node(round(Int64,gx/xyreso), round(Int64,gy/xyreso), round(Int64,gyaw/yawreso),true,[gx],[gy],[gyaw],[gyaw1],[true],0.0,0.0, -1)
-    
+    println(ox)
+    println("--------------in-------------")
+    println(oy)
     # println("nstart: ", nstart);
     # println("ngoal: ", nstart);
     h_dp = calc_holonomic_with_obstacle_heuristic(ngoal, ox, oy, xyreso)
@@ -683,6 +689,10 @@ function main()
 
     oox = ox[:]
     ooy = oy[:]
+
+    println(oox)
+    println("---------------------------")
+    println(ooy)
 
     @time path = calc_hybrid_astar_path(sx, sy, syaw0, syaw1, gx, gy, gyaw0, gyaw1, ox, oy, XY_GRID_RESOLUTION, YAW_GRID_RESOLUTION)
 

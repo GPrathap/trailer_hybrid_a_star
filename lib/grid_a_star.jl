@@ -33,6 +33,11 @@ function calc_dist_policy(gx::Float64, gy::Float64,
 
     ngoal = Node(round(Int64, gx/reso), round(Int64, gy/reso),0.0, -1)
 
+    # println(ox)
+    # println("--------------in-------------")
+    # println(oy)
+
+
     ox = [iox/reso for iox in ox]
     oy = [ioy/reso for ioy in oy]
 
@@ -252,6 +257,8 @@ function calc_obstacle_map(ox::Array{Float64}, oy::Array{Float64}, reso::Float64
     # println("miny:", miny)
     # println("maxx:", maxx)
     # println("maxy:", maxy)
+    println("minx:", ox)
+    println("miny:", oy)
 
     xwidth = round(Int64, maxx - minx)
     ywidth = round(Int64, maxy - miny)

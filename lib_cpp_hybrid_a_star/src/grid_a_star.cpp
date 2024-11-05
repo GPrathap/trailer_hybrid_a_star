@@ -11,32 +11,23 @@ namespace grid_search
 
     void GridAStar::calc_obstacle_map(Eigen::MatrixXd& obses, double& reso, double& vr){
 
-        // Eigen::VectorXd col_min = obses.colwise().minCoeff(); 
-        // Eigen::VectorXd col_max = obses.colwise().maxCoeff();
+        Eigen::VectorXd col_min = obses.colwise().minCoeff(); 
+        Eigen::VectorXd col_max = obses.colwise().maxCoeff();
 
-        // minx_ = std::round(col_min[0]);
-        // miny_ = std::round(col_min[1]);
-        // maxx_ = std::round(col_max[0]);
-        // maxy_ = std::round(col_max[1]);
-
-        minx_ = -15;
-        miny_ = -10;
-        maxx_ = 15;
-        maxy_ = 10;
+        minx_ = std::floor(col_min[0]);
+        miny_ = std::floor(col_min[1]);
+        maxx_ = std::ceil(col_max[0]);
+        maxy_ = std::ceil(col_max[1]);
         
         xwidth_ = maxx_ - minx_;
         ywidth_ = maxy_ - miny_;
-        // std::cout<< "map min: " << col_min.transpose() << std::endl;
-        // std::cout<< "map max: " << col_max.transpose() << std::endl;
-        std::cout<< "xwidth_: " << xwidth_ << " " << ywidth_ << std::endl;
+
+        std::cout<< "xwidth_: " << xwidth_ << " ywidth_: " << ywidth_ << std::endl;
         obs_map.resize(xwidth_, ywidth_);
         obs_map.setZero();
 
         PointCloud cloud;
         cloud.points = obses;
-
-        // std::cout<< " ============= "<< obses.rows()*obses.cols() << std::endl;
-        // std::cout<< " ============= "<< obses << std::endl;
 
         KDTree kd_tree(2 , cloud, nanoflann::KDTreeSingleIndexAdaptorParams(10));
         kd_tree.buildIndex();
@@ -57,24 +48,24 @@ namespace grid_search
                 } 
             }
         }
-        // std::cout << "Obs map: " << obs_map << std::endl;
     }
 
-    int GridAStar::calc_index(const Node& node){
-        return (int)((node.pose.y() - miny_)*xwidth_ + (node.pose.x() - minx_));
+    int GridAStar::calc_index(const Node& node) const {
+        return static_cast<int>((node.pose.y() - miny_)*xwidth_ + (node.pose.x() - minx_));
     }
 
-    double GridAStar::calc_cost(const Node& n, const Node& ngoal) {
+    double GridAStar::calc_cost(const Node& n, const Node& ngoal) const {
         return (n.cost + h(n.pose.x() - ngoal.pose.x(), n.pose.y() - ngoal.pose.y()));
     }
 
-    double GridAStar::h(int x, int y){
+    double GridAStar::h(int x, int y) const {
         return sqrt( pow(x,2) + pow(y,2));
     }
 
-    Eigen::MatrixXd GridAStar::get_motion_model(){
+    Eigen::MatrixXd GridAStar::get_motion_model() const {
         Eigen::MatrixXd motion(8, 3);
-        motion<< 1, 0, 1, 0, 1, 1, -1, 0, 1, 0, -1, 1, -1, -1, sqrt(2), -1, 1, sqrt(2), 1, -1, sqrt(2), 1, 1, sqrt(2);
+        motion<< 1, 0, 1, 0, 1, 1, -1, 0, 1, 0, -1, 1, -1, -1, sqrt(2), -1, 1, sqrt(2)
+        , 1, -1, sqrt(2), 1, 1, sqrt(2);
         return motion;
     }
 
@@ -95,41 +86,29 @@ namespace grid_search
 
         Eigen::MatrixXd motion = get_motion_model();
         int nmotion = motion.rows();
-        // std::priority_queue<int> pq;
         std::priority_queue<CostNode, std::vector<CostNode>, CompareNode> pq;
         CostNode cost_goal(ngoal.cost, calc_index(ngoal));
         pq.push(cost_goal);
         int counter = 0;
         while( true ){
             if(open.empty()){
-                std::cerr << " Finish Search " << std::endl;
+                std::cout << "finish search " << std::endl;
                 break;
             }
             CostNode next_node = pq.top();
             pq.pop();
             int c_id = next_node.id;
             Node current = open[c_id];
-            // if( (current->pose.x() == ngoal.pose.x())&& (current->pose.y() == ngoal.pose.y())){
-            //     std::cout << " Goal!! " << std::endl;
-            //     closed[c_id] = current;
-            //     break;
-            // }
-            // std::cout<< "----------------------------------------------" <<  std::endl;
-            // std::cout<< "current->pind " <<  current.pose.transpose() <<  std::endl;
             open.erase(c_id);
             closed[c_id] = current;
             for(int i=0; i<nmotion; i++){
-                // std::cout<< "current pose " <<  current->pose.transpose() <<  std::endl;
                 Node node(Eigen::Vector2i(current.pose.x() + motion.row(i)[0], current.pose.y() + motion.row(i)[1])
                                 , current.cost + motion.row(i)[2], c_id);
                 
-                // std::cout<< "node.pind " <<  node.pind <<  std::endl;
                 if(!verify_node(node)){
-                    // std::cout<< " not verieid " << node.pose.transpose() << std::endl;
                     continue;
                 }
                 int node_ind = calc_index(node);
-                // std::cout<< "node pose " <<  node.pose.transpose() << " " << c_id << " " << node_ind <<  std::endl;
                 if (closed.find(node_ind) != closed.end()) {
                     continue;
                 }
@@ -137,20 +116,13 @@ namespace grid_search
                     if(open[node_ind].cost > node.cost){
                         open[node_ind].cost = node.cost;
                         open[node_ind].pind = c_id;
-                        // std::cout<< "open node  " <<  node.cost << " " << c_id << " " << node.pose.transpose()  <<  std::endl;
-                        // return;
                     }
                 }else{
                     open[node_ind] = node;
                     CostNode cost_node(node.cost, calc_index(node));
-                    // std::cout<< " close node " << node.pind << " cost " << node.cost << " " << node.pose.transpose() << std::endl; 
                     pq.push(cost_node);
                 }
             }
-            // counter++;
-            // if(counter == 5){
-            //     break;
-            // }
         }
 
         std::cout<< "  grid search length(closed) " << closed.size() << std::endl;
@@ -171,9 +143,7 @@ namespace grid_search
         return mnode;
     }
 
-    bool GridAStar::verify_node(Node node){
-        // std::cout<< minx_ << " " << xwidth_ << miny_ << " " << ywidth_ << std::endl;
-
+    bool GridAStar::verify_node(Node node) const {
         if ((node.pose.x() - minx_) >= xwidth_){
             return false;
         } else if (( node.pose.x() - minx_) < 0 ){
@@ -184,7 +154,6 @@ namespace grid_search
         } else if (( node.pose.y() - miny_) < 0 ){
             return false;
         }       
-        // std::cout<< obs_map << std::endl;
         if (obs_map(node.pose.x()-minx_, node.pose.y()-miny_) > 0){
             return false;
         }
@@ -192,7 +161,7 @@ namespace grid_search
     }
 
     void GridAStar::calc_policy_map(std::unordered_map<int, Node>& closed
-                                                ,  Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic>& pmap){
+                    ,  Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic>& pmap) const {
         pmap.resize(xwidth_, ywidth_);
         pmap.setConstant(std::numeric_limits<double>::infinity());
         for (auto it = closed.begin(); it != closed.end(); ++it) {
@@ -223,8 +192,6 @@ namespace grid_search
         std::priority_queue<CostNode, std::vector<CostNode>, CompareNode> pq;
         CostNode cost_start(calc_cost(nstart, ngoal), calc_index(nstart));
         pq.push(cost_start);
-
-        // std::cout<< "start " << start_pose.transpose() << " goal " << goal_pose.transpose() << std::endl; 
         while( true ){
             if(open.empty()){
                 std::cerr << " Error: No open set " << std::endl;
@@ -239,17 +206,13 @@ namespace grid_search
             pq.pop();
             int c_id = next_node.id;
             Node current = open[c_id];
-            // std::cout<< "c_id " << c_id << " current " << current.pose.transpose() << std::endl; 
-
             if( (current.pose.x() == ngoal.pose.x())&& (current.pose.y() == ngoal.pose.y())){
                 std::cout << " Goal!! " << std::endl;
                 closed[c_id] = current;
                 break;
             }
-
             open.erase(c_id);
             closed[c_id] = current;
-
             for(int i=0; i<nmotion; i++){
                 Node node(Eigen::Vector2i(current.pose.x() + motion.row(i)[0], current.pose.y() + motion.row(i)[1])
                                 , current.cost + motion.row(i)[2], c_id);
@@ -257,7 +220,6 @@ namespace grid_search
                     continue;
                 }
                 int node_ind = calc_index(node);
-                // std::cout<< "node_ind " << node_ind << " , " << node.pose.transpose() << std::endl; 
                 if (closed.find(node_ind) != closed.end()) {
                     continue;
                 }
@@ -265,13 +227,11 @@ namespace grid_search
                     if(open[node_ind].cost > node.cost){
                         open[node_ind].cost = node.cost;
                         open[node_ind].pind = c_id;
-                        // std::cout<< "open cost " << node.cost << " , " << c_id << std::endl; 
                     }
                 }else{
                     open[node_ind] = node;
                     CostNode cost_node(calc_cost(node, ngoal), calc_index(node));
                     pq.push(cost_node);
-                    // std::cout<< "enqueue " <<cost_node.cost << " , " << cost_node.id << std::endl; 
                 }
             }
         }

@@ -16,9 +16,6 @@ namespace planning
 
         double c = cos(-current_pose.z());
         double s = sin(-current_pose.z());
-        // std::cout<< "  " << c << " " << s << std::endl;
-        // std::cout<< "  " << current_pose.transpose() << std::endl;
-        // std::cout<< obses << std::endl;
         for(int j=0; j< obses.rows(); j++){
             Eigen::VectorXd obs = obses.row(j);
             double tx = obs.x() - current_pose.x();
@@ -40,12 +37,10 @@ namespace planning
                 tmp = std::clamp(tmp, 0.0, 1.0);
                 sumangle += (tty >= 0.0) ? acos(tmp) :  -acos(tmp);
             }
-            // std::cout<< " ----- " << j  << std::endl;
             if(sumangle >= M_PI){
                 return false;
             }
         }
-        // std::cout<< " ----out- "  << std::endl;
         return true;
     }
 
@@ -54,43 +49,23 @@ namespace planning
                         , const std::vector<double> vrx, const std::vector<double> vry){
         
         double radius = wbr;
-        // return true;
         for(int i=0; i<poses.rows(); i++){
             Eigen::VectorXd next_pose = poses.row(i);
             double cx = next_pose[0] + wbd*cos(next_pose[2]);
             double cy = next_pose[1] + wbd*sin(next_pose[2]);
             Eigen::Vector3d next_estimated_pose = next_pose.head(3);
-
-            // cx = -3.9686333176445645;
-            // cy = 12.247342929193946;
-
-            // next_estimated_pose[0] = -0.2311848252150952;
-            // next_estimated_pose[1] = 13.843929837767107;
-            // next_estimated_pose[2] = 0.38470272373552944;
-
-
-            // std::cout<< " cx "<< cx<< " cy "<< cy << std::endl;
             std::vector<nanoflann::ResultItem<size_t, double>> indices_dists;
             nanoflann::RadiusResultSet<double, size_t> result_set(radius, indices_dists);
             Eigen::Vector2d query_point(cx, cy);
             kd_tree.findNeighbors(result_set, query_point.data(), nanoflann::SearchParameters());
-            // std::cout << "points within radius " << radius << " from point (" << query_point[0] << ", " << query_point[1] << " " << indices_dists.size() << "):\n";
             if(indices_dists.size() < 1){
                 continue;
             }
-
             Eigen::MatrixXd obs_subset(indices_dists.size(), 2);
             for (size_t i = 0; i < indices_dists.size(); ++i) {
-                // std::cout << "Point " << indices_dists[i].first << ": (" << obses(indices_dists[i].first, 0) << ", " 
-                //         << obses(indices_dists[i].first, 1) << ")  distance " << indices_dists[i].second << "\n";
                 obs_subset.row(i) << obses(indices_dists[i].first, 0), obses(indices_dists[i].first, 1);
             }
-
-            // std::cout << " going to check rect " << std::endl;
-            // std::cout << next_estimated_pose.transpose() << std::endl;
-            // std::cout << "=============================================" << std::endl;
             if (!rect_check(next_estimated_pose, obs_subset, vrx, vry)){
-                // std::cout << " collision detected! " << next_estimated_pose.transpose() << std::endl;
                 return false;
             }
         }
@@ -100,24 +75,14 @@ namespace planning
     bool TrailerLib::calc_trailer_yaw_from_xyyaw(Eigen::MatrixXd& poses, const double init_tyaw
                                                         , Eigen::VectorXd& steps, Eigen::VectorXd& yaws){
         Eigen::VectorXd yaw = poses.col(2);
-        // std::cout<< " yaw_from_xyyaw " << yaw.transpose() << std::endl;
-        // std::cout<< " steps---------- " << steps.transpose() << std::endl;
         yaws.resize(yaw.size());
         yaws.setZero();
-
         yaws[0] = init_tyaw;
-        // std::cout<< " =================yaw================ " << std::endl;
         for(int i=1; i<yaws.size(); i++){
             double steps_d =  steps[i-1];
             double delta_theta = (steps_d/VehicleParams::LT)*sin(yaw[i-1] - yaws[i-1]);
             yaws[i] += yaws[i-1] + delta_theta;
-            // std::cout<< " yaw_from_xyyaw " << yaw[i-1] << " " << yaws[i-1] << " " << delta_theta << " i " << i << steps_d << std::endl;
-            if(std::isnan(delta_theta)){
-                std::cout<< " yaw_from_xyyaw " << yaw[i-1] << " " << yaws[i-1] << " " << i << std::endl;
-                return false;
-            }
         }
-        // std::cout<< " yaw1 " << yaws.transpose() << std::endl;
         return true;
     } 
 
@@ -156,15 +121,11 @@ namespace planning
 
         std::string truckcolor = "-k";
         typedef VehicleParams VP;
-
         double LENGTH = VP::LB+VP::LF;
         double LENGTHt = VP::LTB + VP::LTF;
-
-
         Eigen::MatrixXd truckOutLine(2, 5);
         truckOutLine << -VP::LB, (LENGTH - VP::LB), (LENGTH - VP::LB), (-VP::LB), -VP::LB
                         , VP::W/2, VP::W/2, -VP::W/2, -VP::W/2, VP::W/2;
-        // std::cout<< " truckOutLine " << truckOutLine << std::endl;
         Eigen::MatrixXd trailerOutLine(2, 5);
         trailerOutLine << -VP::LTB, (LENGTHt - VP::LTB), (LENGTHt - VP::LTB), (-VP::LTB), (-VP::LTB)
                             ,VP::W/2, VP::W/2, -VP::W/2, -VP::W/2, VP::W/2;
@@ -193,7 +154,6 @@ namespace planning
         tl_wheel << VP::TR, -VP::TR, -VP::TR, VP::TR, VP::TR,
                     -VP::W/12.0-VP::TW,  -VP::W/12.0-VP::TW, VP::W/12.0-VP::TW, VP::W/12.0-VP::TW, -VP::W/12.0-VP::TW;
         
-
         Eigen::MatrixXd Rot1(2, 2);
         Rot1 << cos(yaw), sin(yaw), -sin(yaw), cos(yaw);
 
@@ -214,9 +174,7 @@ namespace planning
         tr_wheel = Rot3.transpose()*tr_wheel;
         tl_wheel = Rot3.transpose()*tl_wheel;
 
-        // std::cout<< " Rot1 " << Rot1 << std::endl;
         truckOutLine = Rot1.transpose()*truckOutLine;
-        // std::cout<< " Rot1*truckOutLine " << truckOutLine << std::endl;
         trailerOutLine = Rot3.transpose()*trailerOutLine;
 
         rr_wheel = Rot1.transpose()*rr_wheel;
