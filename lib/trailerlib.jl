@@ -41,17 +41,26 @@ function check_collision(x::Array{Float64},
                          vrx::Array{Float64},
                          vry::Array{Float64})::Bool
 
+    
     for (ix, iy, iyaw) in zip(x, y, yaw)
         cx = ix + wbd*cos(iyaw)
         cy = iy + wbd*sin(iyaw)
-
+        
+        # cx = 5.810300232532859
+        # cy = 6.347042978647656
+        
         # Whole bubble check
         ids = inrange(kdtree, [cx, cy], wbr, true)
-        # println(length(ids))
+       
         if length(ids) == 0 continue end
 
         if !rect_check(ix, iy, iyaw, ox[ids], oy[ids], vrx, vry)
+            # println("obs: ", length(ox))
+            # println(" ix,  ", ix, " iy ", iy, "cx ", cx , " cy ", cy, " iyaw ", iyaw)
+            # println(" ix,  ", ix, " iy ", iy, "cx ", cx , " cy ", cy, " iyaw ", iyaw," " ,vrx, " ", vry)
             # println("collision")
+            # println(ox[ids], oy[ids])
+            # println("collision ", cx, " ", cy, " ", wbr)
             return false #collision
         end
 
@@ -70,7 +79,9 @@ function rect_check(ix::Float64, iy::Float64, iyaw::Float64,
 
     c = cos(-iyaw)
     s = sin(-iyaw)
-
+    # println(c , " " , s);
+    # println(ix , " " , iy);
+    # println(ox , " " , oy);
     for (iox, ioy) in zip(ox, oy)
         tx = iox - ix
         ty = ioy - iy
@@ -167,7 +178,7 @@ function check_trailer_collision(
     collision check function for trailer
 
     """
-    return true
+    # return true
     if kdtree == nothing
         kdtree = KDTree(hcat(ox, oy)')
     end

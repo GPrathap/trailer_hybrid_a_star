@@ -166,7 +166,7 @@ namespace planning
                 // if(!can_estimate){
                 //     return false;
                 // }
-                std::cout<< "id: "<< current.pind << " yaw1 " << yaw1[yaw1.size()-1] << " gyaw1 " << gyaw1  << " pi_to_pi " << math_utility::pi_to_pi(yaw1[yaw1.size()-1] - gyaw1) << " yaw1 "<< current_pose[3] << std::endl;
+                // std::cout<< "id: "<< current.pind << " yaw1 " << yaw1[yaw1.size()-1] << " gyaw1 " << gyaw1  << " pi_to_pi " << math_utility::pi_to_pi(yaw1[yaw1.size()-1] - gyaw1) << " yaw1 "<< current_pose[3] << std::endl;
                 if (std::abs(math_utility::pi_to_pi(yaw1[yaw1.size()-1] - gyaw1)) >= PlannerParams::GOAL_TYAW_TH){
                     return false;
                 }
@@ -337,8 +337,16 @@ namespace planning
             // print_vec(d);
             // std::cout<< "   ============================== " << std::endl;
             int counter = 0;
+
+            // HybridNode n_tmp(xind_s, yind_s, yawind_s, true, poses_s, 0.0, 0.0, -1);
+            // double inityaw1 = 0.0;
+            // verify_index(n_tmp, obses, inityaw1, kdtree);
+            // return false;
+               
+
+
+
             while (true){
-                // break;
                 if(open.empty()){
                     std::cout<< "Error: Cannot find path, No open set" << std::endl;
                     break;
@@ -366,7 +374,6 @@ namespace planning
                 // std::cout << " current " << current << std::endl; 
                 // std::cout << " ngoal " << ngoal << std::endl; 
                 // std::cout << " gyaw1 " << g[3] << std::endl; 
-                 
                 
                 bool isupdated = update_node_with_analystic_expantion(current, ngoal, obses, kdtree, g[3], fpath);
                 // std::cout << " isupdated " << isupdated << std::endl;
@@ -387,8 +394,13 @@ namespace planning
                 for(int i=0; i<nmotion; i++){
                     HybridNode node = calc_next_node(current, c_id, u[i], d[i]);
                     if (!verify_index(node, obses, inityaw1, kdtree)){
+                        // std::cout<< " verify node " << std::endl;
                         continue;
                     }
+                    // if(node.pind == 203278){
+                    //     std::cout<< "fiood"<< std::endl;
+                    //     return false;
+                    // }
                     int node_ind = calc_index(node);
                     // std::cout<< "------------------------node info------------------------" << std::endl;
                     // std::cout<< " node_ind " << node_ind << std::endl;
@@ -415,12 +427,12 @@ namespace planning
                     }
 
                     // counter++;
-                    // if(counter == 4){
-                    //     break;
+                    // if(counter == 2){
+                    //     return false;
                     // }
                 }
                 // std::cout<< " -------------------end-------------- " << std::endl;
-            //     break;
+                // break;
                 
             }
 
@@ -480,13 +492,13 @@ namespace planning
             //     return false;
             // }
             std::vector<int> indices;
-            for(int i=0; i<node.poses.rows(); i+=PlannerParams::SKIP_COLLISION_CHECK){
+            for(int i=0; i<path.poses.rows(); i+=PlannerParams::SKIP_COLLISION_CHECK){
                 indices.push_back(i);
             }
 
-            Eigen::MatrixXd selected_poses(indices.size(), node.poses.cols());
+            Eigen::MatrixXd selected_poses(indices.size(), path.poses.cols());
             for (size_t i = 0; i < indices.size(); ++i) {
-                selected_poses.row(i) = node.poses.row(indices[i]);
+                selected_poses.row(i) = path.poses.row(indices[i]);
             }
 
             if (trailerlib_.check_trailer_collision(obses, selected_poses, kdtree)){
@@ -530,9 +542,9 @@ namespace planning
         Eigen::VectorXd steps = node.poses.col(4).array()*PlannerParams::MOTION_RESOLUTION;
         Eigen::VectorXd yaws1;
         bool can_estimate = trailerlib_.calc_trailer_yaw_from_xyyaw(node.poses, inityaw1, steps, yaws1);
-        if(!can_estimate){
-                return false;
-        }
+        // if(!can_estimate){
+        //         return false;
+        // }
         std::vector<int> indices;
         for(int i=0; i<node.poses.rows(); i+=PlannerParams::SKIP_COLLISION_CHECK){
             indices.push_back(i);
@@ -543,7 +555,7 @@ namespace planning
             selected_poses.row(i) = node.poses.row(indices[i]);
         }
 
-        if (!trailerlib_.check_trailer_collision(obses, selected_poses, kdtree)){
+        if (!trailerlib_.check_trailer_collision(obses,  selected_poses, kdtree)){
             return false;
         }
         return true;
@@ -613,6 +625,7 @@ namespace planning
                     .sum();
         // jacknif cost
         addedcost += PlannerParams::JACKKNIF_COST*total_angle_diff;
+        // std::cout<< " =========== yawlist " <<  poses.col(3).transpose() << std::endl;
         // std::cout<< " =========== yawlist " << poses.col(2).transpose()  << " ------- " << poses.col(3).transpose() << std::endl;
         // std::cout<< " =========== addedcost5 " << addedcost  << " total_angle_diff " << total_angle_diff << std::endl;
         double cost = current.cost + addedcost;

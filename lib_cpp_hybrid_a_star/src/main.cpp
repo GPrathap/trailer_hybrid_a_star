@@ -74,9 +74,26 @@ namespace plt = matplotlibcpp;
 // }
 
 
+struct PointCloud {
+    Eigen::MatrixXd points;
+
+    inline size_t kdtree_get_point_count() const { return points.rows(); }
+
+    inline double kdtree_get_pt(const size_t idx, const size_t dim) const {
+        return points(idx, dim);
+    }
+
+    template <class BBOX> bool kdtree_get_bbox(BBOX& /*bb*/) const { return false; }
+};
+
+using KDTree = nanoflann::KDTreeSingleIndexAdaptor<
+    nanoflann::L2_Simple_Adaptor<double, PointCloud>, PointCloud, 2>;
+
 int main(int arc, char *argv[]){
 
-    Eigen::Vector4d s(14.0, 10.0, math_utility::deg2rad(0.0), math_utility::deg2rad(0.0));
+    // Eigen::Vector4d s(-10.0, 6.0, math_utility::deg2rad(0.0), math_utility::deg2rad(0.0));
+    Eigen::Vector4d s(20.0, 6.0, math_utility::deg2rad(0.0), math_utility::deg2rad(0.0));
+    // Eigen::Vector4d s(14.0, 10.0, math_utility::deg2rad(0.0), math_utility::deg2rad(0.0));
     Eigen::Vector4d g(0.0, 0.0, math_utility::deg2rad(90.0), math_utility::deg2rad(90.0));
     
     Eigen::MatrixXd obss(139, 2);
@@ -105,6 +122,35 @@ int main(int arc, char *argv[]){
         obss.row(obs_index) << i*1.0, -15.0;
         obs_index++;
     }
+
+    // double radius = 3.1;
+    // PointCloud cloud;
+    // cloud.points =  obss;
+
+    // // // Create KDTree index
+    // KDTree kd_tree(2, cloud, nanoflann::KDTreeSingleIndexAdaptorParams(10));
+    // kd_tree.buildIndex();
+    // double cx = 5.810300232532859;
+    // double cy = 6.347042978647656;
+    //  std::cout<< " cx "<< cx<< " cy "<< cy << std::endl;
+    // std::vector<nanoflann::ResultItem<size_t, double>> indices_dists;
+    // // std::vector<double> dists;
+    // nanoflann::RadiusResultSet<double, size_t> result_set(radius*radius, indices_dists);
+    // // // resultSet.init(ret_indexes.data(), out_dists.data());
+    // Eigen::Vector2d query_point(cx, cy);
+    // kd_tree.findNeighbors(result_set, query_point.data(), nanoflann::SearchParameters());
+    // // std::cout << "points within radius " << radius << " from point (" << query_point[0] << ", " << query_point[1] << " " << ret_indexes.size() << "):\n";
+    // std::cout << "Points within radius " << radius << " of (" 
+    //           << query_point[0] << ", " << query_point[1] << "):\n";
+
+    // for (const auto& item : indices_dists) {
+    //     size_t idx = item.first;
+    //     double dist = item.second;
+    //     std::cout << "Index: " << idx << ", Distance: " << dist 
+    //               << ", Point: (" << cloud.points(idx, 0) << ", " 
+    //               << cloud.points(idx, 1) << ")\n";
+    // }
+
 
     // Eigen::VectorXd col_min = obss.colwise().minCoeff(); 
     // Eigen::VectorXd col_max = obss.colwise().maxCoeff();
@@ -172,67 +218,6 @@ int main(int arc, char *argv[]){
         plt::axis("equal");
         plt::pause(0.0001);  // Small pause for animation
     }
-
-
-
-    
-
-    // @time path = calc_hybrid_astar_path(sx, sy, syaw0, syaw1, gx, gy, gyaw0, gyaw1, ox, oy, XY_GRID_RESOLUTION, YAW_GRID_RESOLUTION)
-
-//     # Base.Test.@test length(path.x)>=1
-
-//     sx = 14.0  # [m]
-//     sy = 10.0  # [m]
-//     syaw0 = deg2rad(00.0)
-//     syaw1 = deg2rad(00.0)
-
-//     @time path = calc_hybrid_astar_path(sx, sy, syaw0, syaw1, gx, gy, gyaw0, gyaw1, ox, oy, XY_GRID_RESOLUTION, YAW_GRID_RESOLUTION)
-
-//     # Base.Test.@test length(path.x)>=1
-
-//     sx = -14.0  # [m]
-//     sy = 12.0  # [m]
-//     syaw0 = deg2rad(00.0)
-//     syaw1 = deg2rad(00.0)
-//     @time path = calc_hybrid_astar_path(sx, sy, syaw0, syaw1, gx, gy, gyaw0, gyaw1, ox, oy, XY_GRID_RESOLUTION, YAW_GRID_RESOLUTION)
-
-//     # Base.Test.@test length(path.x)>=1
-
-//     sx = -20.0  # [m]
-//     sy = 6.0  # [m]
-//     syaw0 = deg2rad(00.0)
-//     syaw1 = deg2rad(00.0)
-//     @time path = calc_hybrid_astar_path(sx, sy, syaw0, syaw1, gx, gy, gyaw0, gyaw1, ox, oy, XY_GRID_RESOLUTION, YAW_GRID_RESOLUTION)
-
-//     # Base.Test.@test length(path.x)>=1
-
-//     sx = -14.0  # [m]
-//     sy = 12.0  # [m]
-//     syaw0 = deg2rad(00.0)
-//     syaw1 = deg2rad(00.0)
-//     path = calc_hybrid_astar_path(sx, sy, syaw0, syaw1, gx, gy, gyaw0, gyaw1, ox, oy, XY_GRID_RESOLUTION, YAW_GRID_RESOLUTION)
-
-//     # Base.Test.@test length(path.x)>=1
-
-//     sx = -20.0  # [m]
-//     sy = 6.0  # [m]
-//     syaw0 = deg2rad(180.0)
-//     syaw1 = deg2rad(180.0)
-//     @time path = calc_hybrid_astar_path(sx, sy, syaw0, syaw1, gx, gy, gyaw0, gyaw1, ox, oy, XY_GRID_RESOLUTION, YAW_GRID_RESOLUTION)
-
-//     # Base.Test.@test length(path.x)>=1
-
-//     sx = -20.0  # [m]
-//     sy = 12.0  # [m]
-//     syaw0 = deg2rad(180.0)
-//     syaw1 = deg2rad(180.0)
-
-//     @time path = calc_hybrid_astar_path(sx, sy, syaw0, syaw1, gx, gy, gyaw0, gyaw1, ox, oy, XY_GRID_RESOLUTION, YAW_GRID_RESOLUTION)
-
-//     # Base.Test.@test length(path.x)>=1
-
-//     println("Test Done !!!")
-// end
 }
 
 

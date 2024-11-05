@@ -16,13 +16,17 @@ namespace planning
 
         double c = cos(-current_pose.z());
         double s = sin(-current_pose.z());
-        for(int i=0; i< obses.rows(); i++){
-            Eigen::VectorXd obs = obses.row(i);
+        // std::cout<< "  " << c << " " << s << std::endl;
+        // std::cout<< "  " << current_pose.transpose() << std::endl;
+        // std::cout<< obses << std::endl;
+        for(int j=0; j< obses.rows(); j++){
+            Eigen::VectorXd obs = obses.row(j);
             double tx = obs.x() - current_pose.x();
             double ty = obs.y() - current_pose.y();
             double lx = (c*tx - s*ty);
             double ly = (s*tx + c*ty);
             double sumangle = 0.0;
+            
             for(int i=0; i< vrx.size()-1; i++){
                 double x1 = vrx[i] - lx;
                 double y1 = vry[i] - ly;
@@ -36,10 +40,12 @@ namespace planning
                 tmp = std::clamp(tmp, 0.0, 1.0);
                 sumangle += (tty >= 0.0) ? acos(tmp) :  -acos(tmp);
             }
+            // std::cout<< " ----- " << j  << std::endl;
             if(sumangle >= M_PI){
                 return false;
             }
         }
+        // std::cout<< " ----out- "  << std::endl;
         return true;
     }
 
@@ -48,32 +54,43 @@ namespace planning
                         , const std::vector<double> vrx, const std::vector<double> vry){
         
         double radius = wbr;
-        return true;
+        // return true;
         for(int i=0; i<poses.rows(); i++){
             Eigen::VectorXd next_pose = poses.row(i);
             double cx = next_pose[0] + wbd*cos(next_pose[2]);
             double cy = next_pose[1] + wbd*sin(next_pose[2]);
-            std::vector<size_t> ret_indexes;
-            std::vector<double> out_dists;
-            std::vector<nanoflann::ResultItem<size_t>> indices_dists;
-            std::vector<double> dists;
-            nanoflann::RadiusResultSet<double, size_t> resultSet(radius*radius, indices_dists);
-            // resultSet.init(ret_indexes.data(), out_dists.data());
-            double query_point[2] = {cx, cy};
-            kd_tree.findNeighbors(resultSet, query_point, nanoflann::SearchParameters(10));
-            std::cout << "points within radius " << radius << " from point (" << query_point[0] << ", " << query_point[1] << "):\n";
-            if(ret_indexes.size() < 1){
+            Eigen::Vector3d next_estimated_pose = next_pose.head(3);
+
+            // cx = -3.9686333176445645;
+            // cy = 12.247342929193946;
+
+            // next_estimated_pose[0] = -0.2311848252150952;
+            // next_estimated_pose[1] = 13.843929837767107;
+            // next_estimated_pose[2] = 0.38470272373552944;
+
+
+            // std::cout<< " cx "<< cx<< " cy "<< cy << std::endl;
+            std::vector<nanoflann::ResultItem<size_t, double>> indices_dists;
+            nanoflann::RadiusResultSet<double, size_t> result_set(radius, indices_dists);
+            Eigen::Vector2d query_point(cx, cy);
+            kd_tree.findNeighbors(result_set, query_point.data(), nanoflann::SearchParameters());
+            // std::cout << "points within radius " << radius << " from point (" << query_point[0] << ", " << query_point[1] << " " << indices_dists.size() << "):\n";
+            if(indices_dists.size() < 1){
                 continue;
             }
-            Eigen::MatrixXd obs_subset(ret_indexes.size(), 2);
+
+            Eigen::MatrixXd obs_subset(indices_dists.size(), 2);
             for (size_t i = 0; i < indices_dists.size(); ++i) {
-                std::cout << "Point " << indices_dists[i].first << ": (" << obses(indices_dists[i].first, 0) << ", " 
-                        << obses(indices_dists[i].first, 1) << ")  distance " << indices_dists[i].second << "\n";
+                // std::cout << "Point " << indices_dists[i].first << ": (" << obses(indices_dists[i].first, 0) << ", " 
+                //         << obses(indices_dists[i].first, 1) << ")  distance " << indices_dists[i].second << "\n";
                 obs_subset.row(i) << obses(indices_dists[i].first, 0), obses(indices_dists[i].first, 1);
             }
-            
-            if (!rect_check(next_pose.head(3), obs_subset, vrx, vry)){
-                std::cout << "collision detected! " << std::endl;
+
+            // std::cout << " going to check rect " << std::endl;
+            // std::cout << next_estimated_pose.transpose() << std::endl;
+            // std::cout << "=============================================" << std::endl;
+            if (!rect_check(next_estimated_pose, obs_subset, vrx, vry)){
+                // std::cout << " collision detected! " << next_estimated_pose.transpose() << std::endl;
                 return false;
             }
         }
@@ -106,7 +123,6 @@ namespace planning
 
     bool TrailerLib::check_trailer_collision(const Eigen::MatrixXd& obses
                                     , Eigen::MatrixXd& poses, grid_search::KDTree& kd_tree){
-        return true;
         std::vector<double> vrxt = {VehicleParams::LTF, VehicleParams::LTF, -VehicleParams::LTB
                                     , -VehicleParams::LTB, VehicleParams::LTF};
         std::vector<double> vryt = {-VehicleParams::W/2.0, VehicleParams::W/2.0

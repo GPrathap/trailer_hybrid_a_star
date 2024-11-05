@@ -141,6 +141,9 @@ function calc_hybrid_astar_path(sx::Float64, sy::Float64, syaw::Float64, syaw1::
     # println("u d ", nmotion,  " " , length(d));
     # println(u);
     # println(d);
+    # inityaw1 = 0.0
+    # verify_index(nstart, c, ox, oy, inityaw1, kdtree)
+    # return []
     counter = 0 
     while true
         # break;
@@ -178,8 +181,12 @@ function calc_hybrid_astar_path(sx::Float64, sy::Float64, syaw::Float64, syaw1::
         for i in 1:nmotion
             node = calc_next_node(current, c_id, u[i], d[i], c)
            
-            if !verify_index(node, c, ox, oy, inityaw1, kdtree) continue end
-
+            if !verify_index(node, c, ox, oy, inityaw1, kdtree) 
+                # println(current.yaw1)
+                # return
+                continue 
+            end
+            # return
             node_ind = calc_index(node, c)
             # println("-------------node info----------------------")
             # println(" node_ind ", node_ind)
@@ -203,8 +210,8 @@ function calc_hybrid_astar_path(sx::Float64, sy::Float64, syaw::Float64, syaw1::
             end
 
             # counter = counter + 1
-            # if(counter == 5)
-            #     break
+            # if(counter == 2)
+            #     return false;
             # end
         end
         # println("-----------------------------------")
@@ -240,7 +247,7 @@ function update_node_with_analystic_expantion(current::Node,
         # println("steps: ", steps)
         # println(" yaw: ", apath.yaw)
         yaw1 = trailerlib.calc_trailer_yaw_from_xyyaw(apath.x, apath.y, apath.yaw, current.yaw1[end], steps)
-        println("id: ",current.pind, " yaw1 ", yaw1[end], " gyaw1 ", gyaw1, " pi_2_pi ",  rs_path.pi_2_pi(yaw1[end] - gyaw1), " yaw1 ", current.yaw1[end])
+        # println("id: ",current.pind, " yaw1 ", yaw1[end], " gyaw1 ", gyaw1, " pi_2_pi ",  rs_path.pi_2_pi(yaw1[end] - gyaw1), " yaw1 ", current.yaw1[end])
         if abs(rs_path.pi_2_pi(yaw1[end] - gyaw1)) >= GOAL_TYAW_TH
             return false, nothing #no update
         end
@@ -466,6 +473,7 @@ function calc_next_node(current::Node, c_id::Int64,
     # println(" =========== addedcost4 ", addedcost) 
 
     # println(" =========== yawlist ", yawlist, " ----- ", yaw1list) 
+    # println(" =========== yawlist ", yaw1list) 
     angle_diff = sum(abs.(rs_path.pi_2_pi.(yawlist-yaw1list)))
     # jacknif cost
     addedcost += JACKKNIF_COST * angle_diff
@@ -632,13 +640,16 @@ end
 function main()
     println(PROGRAM_FILE," start!!")
 
-    sx = 14.0  # [m]
-    sy = 10.0  # [m]
+    # sx = 14.0  # [m]
+    # sy = 10.0  # [m]
+    sx = -20.0  # [m]
+    sy = 6.0  # [m]
     syaw0 = deg2rad(00.0)
     syaw1 = deg2rad(00.0)
 
     gx = 0.0  # [m]
     gy = 0.0  # [m]
+    
     gyaw0 = deg2rad(90.0)
     gyaw1 = deg2rad(90.0)
 
@@ -719,8 +730,8 @@ end
 function test()
     # println("Test Start !!!")
 
-    gx = 0.0  # [m]
-    gy = 0.0  # [m]
+    gx = 8.9  # [m]
+    gy = 9.9  # [m]
     gyaw0 = deg2rad(90.0)
     gyaw1 = deg2rad(90.0)
 

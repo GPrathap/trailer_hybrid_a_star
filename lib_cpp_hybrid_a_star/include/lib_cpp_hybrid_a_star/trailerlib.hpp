@@ -20,6 +20,8 @@
 #include "lib_cpp_hybrid_a_star/grid_a_star.hpp"
 #include "lib_cpp_hybrid_a_star/rs_paths.hpp"
 #include "matplotlibcpp.h"
+#include <cstdlib>
+
 
 namespace plt = matplotlibcpp;
 
