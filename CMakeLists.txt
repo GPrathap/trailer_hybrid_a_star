@@ -6,7 +6,6 @@ set(CMAKE_CXX_FLAGS "-std=c++17")
 set(CMAKE_CXX_FLAGS_RELEASE "-O3 -Wall -g --debug-cpp --trace-expand")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DBOOST_MATH_DISABLE_FLOAT128 -O1 -Wall -g --debug")
 
-
 find_package(Eigen3 REQUIRED)
 # find python libraries
 find_package(Python3 COMPONENTS Interpreter Development NumPy REQUIRED)
@@ -37,3 +36,27 @@ target_link_libraries(lib_cpp_hybrid_a_star  Eigen3::Eigen ${PYTHON_LIBRARIES} P
 
 add_executable(hybrid_a_star src/main.cpp)
 target_link_libraries(hybrid_a_star  Eigen3::Eigen lib_cpp_hybrid_a_star  ${PYTHON_LIBRARIES} Python3::NumPy)
+
+# find_package(IPOPT REQUIRED)
+# include_directories(${IPOPT_INCLUDE_DIRS})
+
+set(IPOPT_LIBRARY_DIRS /usr/local/lib)
+set(IPOPT_INCLUDE_DIRS /usr/local/include/coin)
+
+
+# Add Matplotlib C++ header
+include_directories(${CMAKE_SOURCE_DIR} ${IPOPT_INCLUDE_DIRS})  # Assuming matplotlibcpp.h is in the source directory
+
+# Add project source files
+add_executable(TrajectoryOptimization src/try_ipopt.cpp)
+
+# Link libraries
+target_include_directories(TrajectoryOptimization PRIVATE ${CPPAD_INCLUDE_DIR} ${IPOPT_INCLUDE_DIRS})
+target_link_libraries(TrajectoryOptimization ${IPOPT_LIBRARY_DIRS} Eigen3::Eigen Python3::NumPy ${PYTHON_LIBRARIES})
+
+# Link Python for matplotlibcpp (assuming Python 3)
+find_package(Python3 REQUIRED COMPONENTS Interpreter Development)
+target_include_directories(TrajectoryOptimization PRIVATE ${Python3_INCLUDE_DIRS})
+target_link_libraries(TrajectoryOptimization ${Python3_LIBRARIES} ipopt )
+
+
