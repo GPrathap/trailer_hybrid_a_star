@@ -235,15 +235,13 @@ int main() {
 
     std::vector<double> x_list;
     std::vector<double> y_list;
-    std::vector<double> theta_list;
 
     for(int i=0; i<data.rows(); i++){
       x_list.push_back(data.row(i)[0]);
       y_list.push_back(data.row(i)[1]);
-      theta_list.push_back(data.row(i)[2]);
     }
 
-    PathOptimizationNLP* clone_opt = new PathOptimizationNLP(x_list, y_list, theta_list);
+    PathOptimizationNLP* clone_opt = new PathOptimizationNLP(x_list, y_list);
     SmartPtr<TNLP> mynlp = clone_opt;
 
     SmartPtr<IpoptApplication> app = IpoptApplicationFactory();
@@ -264,7 +262,7 @@ int main() {
 
     status = app->OptimizeTNLP(mynlp);
     if (status == Solve_Succeeded) {
-        // clone_opt->visualize_result();
+        clone_opt->visualize_result();
         std::cout << "Optimization succeeded!" << std::endl;
     } else {
         std::cout << "Optimization failed!" << std::endl;

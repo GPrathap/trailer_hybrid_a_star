@@ -31,10 +31,10 @@ void TrajectoryTracking::init(size_t n_,
         deviation_weight = deviation_weight_;
         delta_t = delta_t_;
         v_max = v_max_;
-        x_init = std::move(x_init_);
-        y_init = std::move(y_init_);
-        d_init = std::move(d_init_);
-        theta_list = std::move(theta_list_);
+        x_init = x_init_;
+        y_init = y_init_;
+        d_init = d_init_;
+        theta_list = theta_list_;
 }
 
 // returns the size of the problem
@@ -63,7 +63,7 @@ bool TrajectoryTracking::get_nlp_info(Ipopt::Index& n_var,
   n_var = 3 * init_n;
   n_cons = 4 * init_n - 2;
   nnz_jac_g = 3 * init_n; // Assuming sparse Jacobian for constraints
-  nnz_h_lag = init_n * init_n; // Approximate Hessian nonzeros
+  nnz_h_lag = 0; // Approximate Hessian nonzeros
   index_style = Ipopt::TNLP::C_STYLE;
   std::cout<< " get_nlp_info -----> x " << n_var << " n_cons " << n_cons << " nnz_jac_g " << nnz_jac_g << " nnz_h_lag " << nnz_h_lag << std::endl;
   return true;
@@ -91,12 +91,13 @@ bool TrajectoryTracking::get_bounds_info(Ipopt::Index n_var,
       g_u[i] = 0.0;
   }
 
-  // for (size_t i = 0; i < init_n - 1; ++i) {
-  //     g_l[3 * init_n + i] = -v_max;
-  //     g_u[3 * init_n + i] = v_max;
-  //     g_l[3 * init_n + (init_n - 1) + i] = -v_max;
-  //     g_u[3 * init_n + (init_n - 1) + i] = v_max;
-  // }
+  for (size_t i = 0; i < init_n - 1; ++i) {
+      g_l[3 * init_n + i] = -v_max;
+      g_u[3 * init_n + i] = v_max;
+      g_l[3 * init_n + (init_n - 1) + i] = -v_max;
+      g_u[3 * init_n + (init_n - 1) + i] = v_max;
+      std::cout<< i << std::endl;
+  }
   std::cout<< " get_bounds_info -----> " << std::endl;
   
   return true;
