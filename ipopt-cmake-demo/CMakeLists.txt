@@ -36,21 +36,25 @@ include_directories(
 )
 
 
-message("ipopt binary path is: " ${IPOPT_LIBRARY_DIRS} )
-message("ipopt include path is: " ${IPOPT_INCLUDE_DIRS} )
+# message("ipopt binary path is: " ${IPOPT_LIBRARY_DIRS} )
+# message("ipopt include path is: " ${IPOPT_INCLUDE_DIRS} )
 
-include_directories(${IPOPT_INCLUDE_DIRS} ${CMAKE_SOURCE_DIR}/include)
+# include_directories(${IPOPT_INCLUDE_DIRS} ${CMAKE_SOURCE_DIR}/include)
 link_directories(${IPOPT_LIBRARY_DIRS})
 
-add_library(ipopt_interface1 ipopt_interface.cpp)
-add_library(ipopt_interface ipopt_interface_traj.cpp)
-target_link_libraries(ipopt_interface Eigen3::Eigen ${PYTHON_LIBRARIES} Python3::NumPy)
-target_link_libraries(ipopt_interface1 Eigen3::Eigen ${PYTHON_LIBRARIES} Python3::NumPy)
+
+set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${PROJECT_SOURCE_DIR}/cmake_modules)
+find_package(CASADI REQUIRED)
+include_directories(${CASADI_INCLUDE_DIR})
+
+# add_library(ipopt_interface1 ipopt_interface.cpp)
+# add_library(ipopt_interface ipopt_interface_traj.cpp)
+# target_link_libraries(ipopt_interface Eigen3::Eigen ${PYTHON_LIBRARIES} Python3::NumPy)
+# target_link_libraries(ipopt_interface1 Eigen3::Eigen ${PYTHON_LIBRARIES} Python3::NumPy)
 
 add_executable(ipopt_example main.cpp)
-add_executable(ipopt_orign main_original.cpp)
+# add_executable(ipopt_orign main_original.cpp)
 
-target_link_libraries(ipopt_orign  ipopt_interface1)
-target_link_libraries(ipopt_example ipopt_interface ipopt Eigen3::Eigen ${PYTHON_LIBRARIES} Python3::NumPy)
-target_link_libraries(ipopt_orign  ipopt Eigen3::Eigen ${PYTHON_LIBRARIES} Python3::NumPy)
+target_link_libraries(ipopt_example ipopt Eigen3::Eigen ${PYTHON_LIBRARIES} Python3::NumPy ${CASADI_LIBRARIES} casadi)
+# target_link_libraries(ipopt_orign  ipopt Eigen3::Eigen ${PYTHON_LIBRARIES} Python3::NumPy)
 

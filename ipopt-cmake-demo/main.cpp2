@@ -18,32 +18,89 @@ using namespace Ipopt;
 
 class PathOptimizationNLP : public TNLP {
 public:
-    PathOptimizationNLP(const std::vector<double>& x_list, const std::vector<double>& y_list)
-        : x_list_(x_list), y_list_(y_list), n_(x_list.size()), x_opt_(x_list.size()), y_opt_(y_list.size()), d_opt_(y_list.size()) {}
+    PathOptimizationNLP(const std::vector<double>& x_list, const std::vector<double>& y_list, const std::vector<double>& theta_list
+        ,  Eigen::MatrixXd A, Eigen::VectorXd b)
+        : x_list_(x_list), y_list_(y_list), theta_list_(theta_list), n_(x_list.size())
+        , x_opt_(x_list.size()), y_opt_(y_list.size()), delta_opt_(y_list.size())
+        , theta_opt_(x_list.size()), v_opt_(y_list.size())
+        , A_p_(A), b_p_(b) {}
 
     virtual ~PathOptimizationNLP() {}
 
     bool get_nlp_info(Ipopt::Index& n, Ipopt::Index& m, Ipopt::Index& nnz_jac_g, Ipopt::Index& nnz_h_lag, IndexStyleEnum& index_style) override {
-        n = 3 * n_;  // x, y, and d for each point
-        m = 2 * (n_ - 1);  // 2 velocity constraints per interval
+        n = 5 * n_;  // x, y, and d for each point
+        m = (n_ - 1) * 3 + (n_) * 2 + 2 * (n_);  // 2 velocity constraints per interval
         nnz_jac_g = m;     // Jacobian has a simple structure in this case
         nnz_h_lag = 0;     // IPOPT will approximate Hessian
         index_style = TNLP::C_STYLE;  // use C-style indexing
+
+        std::cout<< " m " << m << " n " << n << std::endl; 
         return true;
     }
 
     bool get_bounds_info(Ipopt::Index n, Number* x_l, Number* x_u, Ipopt::Index m, Number* g_l, Number* g_u) override {
+
+        std::cout<< " get_bounds_info m " << m << " n " << n << std::endl; 
+
         for (Ipopt::Index i = 0; i < n_; ++i) {
             x_l[i] = -1e19;  x_u[i] = 1e19;  // x bounds
             x_l[i + n_] = -1e19; x_u[i + n_] = 1e19;  // y bounds
-            x_l[i + 2 * n_] = -1e19; x_u[i + 2 * n_] = 1e19;  // d bounds
+            // x_l[i + 2 * n_] = -3.1; x_u[i + 2 * n_] = 3.1;  // theta bounds
+            // x_l[i + 3 * n_] = -v_max_; x_u[i + 3 * n_] = v_max_;  // v bounds
+            // x_l[i + 4 * n_] = -1e19; x_u[i + 4 * n_] = 1e19;  // delta bounds
+            x_l[i + 2 * n_] = -1e19; x_u[i + 2 * n_] = 1e19;  // theta bounds
+            x_l[i + 3 * n_] = -1e19; x_u[i + 3 * n_] = 1e19;  // v bounds
+            x_l[i + 4 * n_] = -1e19; x_u[i + 4 * n_] = 1e19;  // delta bounds
+        }
+        // Constraint bounds for kinematic constraints (equality constraints)
+        int constraint_index = 0;
+        int num_vars = n_;
+        for (int i = 0; i < num_vars - 1; ++i) {
+            // x_t+1 = x_t + delta_t * v * cos(theta)
+            g_l[constraint_index] = 0.0;
+            g_u[constraint_index] = 0.0;
+            constraint_index++;
+            // y_t+1 = y_t + delta_t * v * sin(theta)
+            g_l[constraint_index] = 0.0;
+            g_u[constraint_index] = 0.0;
+            constraint_index++;
+
+            // theta_t+1 = theta_t + delta_t * v * tan(delta) / wheelbase
+            g_l[constraint_index] = 0.0;
+            g_u[constraint_index] = 0.0;
+            constraint_index++;
         }
 
-        double v_max = 1.0;
-        for (Ipopt::Index i = 0; i < m; ++i) {
-            g_l[i] = -v_max;
-            g_u[i] = v_max;
+        std::cout<< " kinematic constraints constraint_index  " << constraint_index << std::endl; 
+
+        // Velocity constraint bounds (inequality constraints)
+        for (int i = 0; i < num_vars; ++i) {
+            g_l[constraint_index] = 0.0;   // Minimum velocity constraint
+            g_u[constraint_index] = v_max_; // Maximum velocity constraint
+            constraint_index++;
         }
+
+        std::cout<< " Velocity constraint constraint_index  " << constraint_index << std::endl; 
+
+        // Steering angle constraint bounds (inequality constraints)
+        for (int i = 0; i < num_vars; ++i) {
+            g_l[constraint_index] = -delta_max_;
+            g_u[constraint_index] = delta_max_;
+            constraint_index++;
+        }
+
+        std::cout<< " Steering angle constraint_index  " << constraint_index << std::endl; 
+
+        // Boundary constraint bounds (polygon constraints, inequality constraints)
+        for (int i = 0; i < num_vars; ++i) {
+            for (int j = 0; j < 2; ++j) {
+                // A_p * [x; y] <= b_p
+                g_l[constraint_index] = -1e19;
+                g_u[constraint_index] = b_p_(j);
+                constraint_index++;
+            }
+        }
+        std::cout<< "  Boundary constraint constraint_index  " << constraint_index << std::endl; 
         return true;
     }
 
@@ -64,56 +121,162 @@ public:
 
     bool get_starting_point(Ipopt::Index n, bool init_x, Number* x, bool init_z, Number* z_L, Number* z_U,
                             Ipopt::Index m, bool init_lambda, Number* lambda) override {
+
+        std::cout<< " get_starting_point " << std::endl;
         if (init_x) {
             for (Ipopt::Index i = 0; i < n_; ++i) {
                 x[i] = x_list_[i];
                 x[i + n_] = y_list_[i];
-                x[i + 2 * n_] = 0.0;  // initial deviation d
+                x[i + 2 * n_] = theta_list_[i];
+                x[i + 3 * n_] = v_max_;
+                x[i + 4 * n_] = 0.0;
             }
         }
+        std::cout<< " get_starting_point " << std::endl;
         return true;
     }
 
     bool eval_f(Ipopt::Index n, const Number* x, bool new_x, Number& obj_value) override {
         obj_value = 0.0;
-        double curvature_weight = 1.0, deviation_weight = 1.0;
-
-        // Curvature penalty (second derivative)
-        for (Ipopt::Index i = 0; i < n_ - 2; ++i) {
-            double dds_x = x[i + 2] - 2 * x[i + 1] + x[i];
-            double dds_y = x[n_ + i + 2] - 2 * x[n_ + i + 1] + x[n_ + i];
-            obj_value += curvature_weight * (dds_x * dds_x + dds_y * dds_y);
+        int num_vars = n_ ;  // Number of variables per group (n-1 because initial pose is fixed)
+        const Number* x_vars = x;
+        const Number* y_vars = x + num_vars;
+        const Number* theta_vars = x + 2 * num_vars;
+        const Number* v_vars = x + 3 * num_vars;
+        const Number* delta_vars = x + 4 * num_vars;
+        std::cout<< " eval_f 1 " << std::endl;
+        // Curvature penalty
+        for (int i = 0; i < num_vars - 2; ++i) {
+            Number dds_x = x_vars[i + 2] - 2 * x_vars[i + 1] + x_vars[i];
+            Number dds_y = y_vars[i + 2] - 2 * y_vars[i + 1] + y_vars[i];
+            obj_value += curvature_weight_ * (dds_x * dds_x + dds_y * dds_y);
         }
-
-        // Deviation penalty
-        for (Ipopt::Index i = 0; i < n_; ++i) {
-            obj_value += deviation_weight * x[2 * n_ + i] * x[2 * n_ + i];
+        // Curvature rate penalty
+        for (int i = 0; i < num_vars - 3; ++i) {
+            Number ddds_x = x_vars[i + 3] - 3 * x_vars[i + 2] + 3 * x_vars[i + 1] - x_vars[i];
+            Number ddds_y = y_vars[i + 3] - 3 * y_vars[i + 2] + 3 * y_vars[i + 1] - y_vars[i];
+            obj_value += curvature_rate_weight_ * (ddds_x * ddds_x + ddds_y * ddds_y);
         }
+        // Distance penalty between consecutive points
+        for (int i = 0; i < num_vars - 1; ++i) {
+            Number dx = x_vars[i + 1] - x_vars[i];
+            Number dy = y_vars[i + 1] - y_vars[i];
+            obj_value += distance_weight_ * (dx * dx + dy * dy);
+        }
+        std::cout<< " eval_f 2 " << std::endl;
         return true;
     }
-
 
     bool eval_grad_f(Ipopt::Index n, const Number* x, bool new_x, Number* grad_f) override {
         // Set up gradient computations here
         // For simplicity, initialize gradient to zero (you'd calculate these values in a complete implementation)
+        std::cout<< "------------eval_grad_f--------------- "  << std::endl;
         for (Ipopt::Index i = 0; i < n; ++i) {
             grad_f[i] = 0.0;
         }
+        // std::fill(grad_f, grad_f + n, 0.0);
+
+        // // Extract indices for variable groups
+        // int num_vars = n_; // Number of optimization variables per group
+        // const Number* x_vars = x;
+        // const Number* y_vars = x + num_vars;
+        // const Number* theta_vars = x + 2 * num_vars;
+        // const Number* v_vars = x + 3 * num_vars;
+        // const Number* delta_vars = x + 4 * num_vars;
+
+        // Number* grad_x = grad_f;
+        // Number* grad_y = grad_f + num_vars;
+        // Number* grad_theta = grad_f + 2 * num_vars;
+        // Number* grad_v = grad_f + 3 * num_vars;
+        // Number* grad_delta = grad_f + 4 * num_vars;
+
+        // // Compute gradient for curvature penalty
+        // for (int i = 0; i < num_vars - 2; ++i) {
+        //     Number dds_x = x_vars[i + 2] - 2 * x_vars[i + 1] + x_vars[i];
+        //     Number dds_y = y_vars[i + 2] - 2 * y_vars[i + 1] + y_vars[i];
+            
+        //     grad_x[i] += curvature_weight_ * -2 * dds_x;
+        //     grad_x[i + 1] += curvature_weight_ * 4 * dds_x;
+        //     grad_x[i + 2] += curvature_weight_ * -2 * dds_x;
+            
+        //     grad_y[i] += curvature_weight_ * -2 * dds_y;
+        //     grad_y[i + 1] += curvature_weight_ * 4 * dds_y;
+        //     grad_y[i + 2] += curvature_weight_ * -2 * dds_y;
+        // }
+
+        // // Compute gradient for curvature rate penalty
+        // for (int i = 0; i < num_vars - 3; ++i) {
+        //     Number ddds_x = x_vars[i + 3] - 3 * x_vars[i + 2] + 3 * x_vars[i + 1] - x_vars[i];
+        //     Number ddds_y = y_vars[i + 3] - 3 * y_vars[i + 2] + 3 * y_vars[i + 1] - y_vars[i];
+            
+        //     grad_x[i] += curvature_rate_weight_ * 6 * ddds_x;
+        //     grad_x[i + 1] += curvature_rate_weight_ * -18 * ddds_x;
+        //     grad_x[i + 2] += curvature_rate_weight_ * 18 * ddds_x;
+        //     grad_x[i + 3] += curvature_rate_weight_ * -6 * ddds_x;
+
+        //     grad_y[i] += curvature_rate_weight_ * 6 * ddds_y;
+        //     grad_y[i + 1] += curvature_rate_weight_ * -18 * ddds_y;
+        //     grad_y[i + 2] += curvature_rate_weight_ * 18 * ddds_y;
+        //     grad_y[i + 3] += curvature_rate_weight_ * -6 * ddds_y;
+        // }
+
+        // // Compute gradient for distance penalty between consecutive points
+        // for (int i = 0; i < num_vars - 1; ++i) {
+        //     Number dx = x_vars[i + 1] - x_vars[i];
+        //     Number dy = y_vars[i + 1] - y_vars[i];
+
+        //     grad_x[i] -= 2 * distance_weight_ * dx;
+        //     grad_x[i + 1] += 2 * distance_weight_ * dx;
+
+        //     grad_y[i] -= 2 * distance_weight_ * dy;
+        //     grad_y[i + 1] += 2 * distance_weight_ * dy;
+        // }
+        std::cout<< "------------eval_grad_f--------------- "  << std::endl;
         return true;
     }
 
     bool eval_g(Ipopt::Index n, const Number* x, bool new_x, Ipopt::Index m, Number* g) override {
-        double delta_t = 1.0;
-        for (Ipopt::Index i = 0; i < n_ - 1; ++i) {
-            // x-velocity constraint
-            g[2 * i] = (x[i + 1] - x[i]) / delta_t;
-            // y-velocity constraint
-            g[2 * i + 1] = (x[n_ + i + 1] - x[n_ + i]) / delta_t;
+        
+        int num_vars = n_; // Number of optimization variables per group
+        const Number* x_vars = x;
+        const Number* y_vars = x + num_vars;
+        const Number* theta_vars = x + 2 * num_vars;
+        const Number* v_vars = x + 3 * num_vars;
+        const Number* delta_vars = x + 4 * num_vars;
+
+        int constraint_index = 0;
+        std::cout<< " eval_g Boundary constraint constraint_index  " << constraint_index << std::endl; 
+        // Kinematic constraints for car-like dynamics
+        for (int i = 0; i < num_vars - 1; ++i) {
+            // x_t+1 = x_t + delta_t * v * cos(theta)
+            g[constraint_index++] = x_vars[i + 1] - (x_vars[i] + delta_t_ * v_vars[i] * std::cos(theta_vars[i]));
+            // y_t+1 = y_t + delta_t * v * sin(theta)
+            g[constraint_index++] = y_vars[i + 1] - (y_vars[i] + delta_t_ * v_vars[i] * std::sin(theta_vars[i]));
+            // theta_t+1 = theta_t + delta_t * v * tan(delta) / L
+            g[constraint_index++] = theta_vars[i + 1] - (theta_vars[i] + delta_t_ * v_vars[i] * std::tan(delta_vars[i]) / wheelbase_);
         }
+        std::cout<< " eval_g Boundary constraint constraint_index  " << constraint_index << std::endl; 
+        // Velocity and steering angle constraints
+        for (int i = 0; i < num_vars; ++i) {
+            // Velocity constraint (0 <= v <= v_max)
+            g[constraint_index++] = v_vars[i];
+            // Steering angle constraint (-delta_max <= delta <= delta_max)
+            g[constraint_index++] = delta_vars[i];
+        }
+        std::cout<< " eval_g Velocity and steering angle  " << constraint_index << std::endl; 
+        // Boundary constraints for polygon
+        for (int i = 0; i < num_vars; ++i) {
+            for (int j = 0; j < 2; ++j) {
+                // Boundary constraint: A_p * [x; y] <= b_p
+                g[constraint_index++] = x_vars[i] * A_p_(j, 0) + y_vars[i] * A_p_(j, 1);
+            }
+        }
+        std::cout<< " eval_g Boundary constraints  " << constraint_index << std::endl; 
         return true;
     }
 
     bool eval_jac_g(Ipopt::Index n, const Number* x, bool new_x, Ipopt::Index m, Ipopt::Index nele_jac, Ipopt::Index* iRow, Ipopt::Index* jCol, Number* values) override {
+        std::cout<< "------------eval_jac_g--------------- "  << std::endl; 
         if (values == nullptr) {
             for (Ipopt::Index i = 0; i < m; ++i) {
                 iRow[i] = i;
@@ -122,9 +285,38 @@ public:
         } else {
             // Assign values for nonzero Jacobian entries
             for (Ipopt::Index i = 0; i < m; ++i) {
-                values[i] = 1.0;
+                values[i] = 0.0;
             }
         }
+
+        // if (values == nullptr) {
+        //     // First call: Define the structure (sparsity pattern) of the Jacobian.
+        //     // Populate iRow and jCol with indices of non-zero entries in the Jacobian matrix.
+
+        //     // Example of setting structure for a hypothetical problem
+        //     // Assume each constraint depends on every variable
+        //     Index idx = 0;
+        //     for (Index i = 0; i < m; i++) {      // For each constraint
+        //         for (Index j = 0; j < n; j++) {  // For each variable
+        //             iRow[idx] = i;               // Row index of non-zero entry
+        //             jCol[idx] = j;               // Column index of non-zero entry
+        //             idx++;
+        //         }
+        //     }
+        // } else {
+        //     // Second call: Compute the actual values of the Jacobian at the point x.
+        //     // Populate 'values' array with Jacobian values for g(x).
+
+        //     Index idx = 0;
+        //     for (Index i = 0; i < m; i++) {      // For each constraint
+        //         for (Index j = 0; j < n; j++) {  // For each variable
+        //             // Example calculation of partial derivative for Jacobian value
+        //             values[idx] = 1.0;  // Replace with actual computation
+        //             idx++;
+        //         }
+        //     }
+        // }
+        std::cout<< "------------eval_jac_g--------------- "  << std::endl;
         return true;
     }
 
@@ -134,7 +326,9 @@ public:
         for (Ipopt::Index i = 0; i < n_; ++i) {
             x_opt_[i] = x[i];
             y_opt_[i] = x[i + n_];
-            d_opt_[i] = x[i + 2 * n_];
+            theta_opt_[i] = x[i + 2 * n_];
+            v_opt_[i] = x[i + 3 * n_];
+            delta_opt_[i] = x[i + 4 * n_];
         }
         // visualize_result();
     }
@@ -177,17 +371,26 @@ public:
     }
 
 private:
-    std::vector<double> x_list_, y_list_;
+    std::vector<double> x_list_, y_list_, theta_list_;
     Ipopt::Index n_;
-    std::vector<double> x_opt_, y_opt_, d_opt_;
+    std::vector<double> x_opt_, y_opt_, delta_opt_, theta_opt_, v_opt_;
+    double v_max_{1.0};
+    double delta_t_ = 0.1;
+    double wheelbase_ = 1.0;
+    Eigen::MatrixXd A_p_;
+    Eigen::VectorXd b_p_;
+    double curvature_weight_{1.0};
+    double curvature_rate_weight_{1.0};
+    double distance_weight_{1.0};
+    double delta_max_{1.0};
+
 };
 
 int main() {
 
     
-  Eigen::MatrixXd data(42, 3);
-  data << 0.0714334, 0.00638967, 1.66001
-    ,0.171036, 0.015299, 1.66001
+  Eigen::MatrixXd data(41, 3);
+  data << 0.171036, 0.015299, 1.66001
     ,0.270638, 0.0242084, 1.66001
     ,0.37024, 0.0331177, 1.66001
     ,0.469843, 0.0420271, 1.66001
@@ -236,13 +439,21 @@ int main() {
 
     std::vector<double> x_list;
     std::vector<double> y_list;
+    std::vector<double> theta_list;
 
     for(int i=0; i<data.rows(); i++){
       x_list.push_back(data.row(i)[0]);
       y_list.push_back(data.row(i)[1]);
+      theta_list.push_back(data.row(i)[2]);
     }
 
-    PathOptimizationNLP* clone_opt = new PathOptimizationNLP(x_list, y_list);
+
+    Eigen::MatrixXd A(2,2);
+    Eigen::VectorXd b(2);
+    A << -0.0645709,  -0.997913, 0.0645709,   0.997913;
+    b << 0.737278,    0.632449;
+
+    PathOptimizationNLP* clone_opt = new PathOptimizationNLP(x_list, y_list, theta_list, A, b);
     SmartPtr<TNLP> mynlp = clone_opt;
 
     SmartPtr<IpoptApplication> app = IpoptApplicationFactory();
@@ -263,7 +474,7 @@ int main() {
 
     status = app->OptimizeTNLP(mynlp);
     if (status == Solve_Succeeded) {
-        clone_opt->visualize_result();
+        // clone_opt->visualize_result();
         std::cout << "Optimization succeeded!" << std::endl;
     } else {
         std::cout << "Optimization failed!" << std::endl;

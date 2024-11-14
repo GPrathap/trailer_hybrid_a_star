@@ -1,396 +1,255 @@
-// Copyright (C) 2005, 2009 International Business Machines and others.
-// All Rights Reserved.
-// This code is published under the Eclipse Public License.
-//
-// $Id$
-//
-// Authors:  Carl Laird, Andreas Waechter     IBM    2005-08-10
-// Modified: brian paden Aug-2017
-
-#include <IpIpoptApplication.hpp>
+#include <casadi/casadi.hpp>
+#include <vector>
 #include <iostream>
-
-#include "ipopt_interface_traj.hpp"
-// #include "ipopt_interface.hpp"
-
-using namespace Ipopt;
-// using namespace Eigen;
-
-class PathOptimizationNLP : public TNLP {
-public:
-    PathOptimizationNLP(const std::vector<double>& x_list, const std::vector<double>& y_list)
-        : x_list_(x_list), y_list_(y_list), n_(x_list.size()), x_opt_(x_list.size()), y_opt_(y_list.size()), d_opt_(y_list.size()) {}
-
-    virtual ~PathOptimizationNLP() {}
-
-    bool get_nlp_info(Ipopt::Index& n, Ipopt::Index& m, Ipopt::Index& nnz_jac_g, Ipopt::Index& nnz_h_lag, IndexStyleEnum& index_style) override {
-        n = 3 * n_;  // x, y, and d for each point
-        m = 2 * (n_ - 1);  // 2 velocity constraints per interval
-        nnz_jac_g = m;     // Jacobian has a simple structure in this case
-        nnz_h_lag = 0;     // IPOPT will approximate Hessian
-        index_style = TNLP::C_STYLE;  // use C-style indexing
-        return true;
-    }
-
-    bool get_bounds_info(Ipopt::Index n, Number* x_l, Number* x_u, Ipopt::Index m, Number* g_l, Number* g_u) override {
-        for (Ipopt::Index i = 0; i < n_; ++i) {
-            x_l[i] = -1e19;  x_u[i] = 1e19;  // x bounds
-            x_l[i + n_] = -1e19; x_u[i + n_] = 1e19;  // y bounds
-            x_l[i + 2 * n_] = -1e19; x_u[i + 2 * n_] = 1e19;  // d bounds
-        }
-
-        double v_max = 1.0;
-        for (Ipopt::Index i = 0; i < m; ++i) {
-            g_l[i] = -v_max;
-            g_u[i] = v_max;
-        }
-        return true;
-    }
-
-    bool eval_h(Ipopt::Index n, 
-                         const Ipopt::Number* x, 
-                         bool new_x,
-                         Ipopt::Number obj_factor, 
-                         Ipopt::Index m, 
-                         const Ipopt::Number* lambda,
-                         bool new_lambda, 
-                         Ipopt::Index nele_hess, 
-                         Ipopt::Index* iRow,
-                         Ipopt::Index* jCol, 
-                         Ipopt::Number* values)
-  {
-    return true;
-  }
-
-    bool get_starting_point(Ipopt::Index n, bool init_x, Number* x, bool init_z, Number* z_L, Number* z_U,
-                            Ipopt::Index m, bool init_lambda, Number* lambda) override {
-        if (init_x) {
-            for (Ipopt::Index i = 0; i < n_; ++i) {
-                x[i] = x_list_[i];
-                x[i + n_] = y_list_[i];
-                x[i + 2 * n_] = 0.0;  // initial deviation d
-            }
-        }
-        return true;
-    }
-
-    bool eval_f(Ipopt::Index n, const Number* x, bool new_x, Number& obj_value) override {
-        obj_value = 0.0;
-        double curvature_weight = 1.0, deviation_weight = 1.0;
-
-        // Curvature penalty (second derivative)
-        for (Ipopt::Index i = 0; i < n_ - 2; ++i) {
-            double dds_x = x[i + 2] - 2 * x[i + 1] + x[i];
-            double dds_y = x[n_ + i + 2] - 2 * x[n_ + i + 1] + x[n_ + i];
-            obj_value += curvature_weight * (dds_x * dds_x + dds_y * dds_y);
-        }
-
-        // Deviation penalty
-        for (Ipopt::Index i = 0; i < n_; ++i) {
-            obj_value += deviation_weight * x[2 * n_ + i] * x[2 * n_ + i];
-        }
-        return true;
-    }
-
-    bool eval_grad_f(Ipopt::Index n, const Number* x, bool new_x, Number* grad_f) override {
-        // Set up gradient computations here
-        // For simplicity, initialize gradient to zero (you'd calculate these values in a complete implementation)
-        for (Ipopt::Index i = 0; i < n; ++i) {
-            grad_f[i] = 0.0;
-        }
-        return true;
-    }
-
-    bool eval_g(Ipopt::Index n, const Number* x, bool new_x, Ipopt::Index m, Number* g) override {
-        double delta_t = 1.0;
-        for (Ipopt::Index i = 0; i < n_ - 1; ++i) {
-            // x-velocity constraint
-            g[2 * i] = (x[i + 1] - x[i]) / delta_t;
-            // y-velocity constraint
-            g[2 * i + 1] = (x[n_ + i + 1] - x[n_ + i]) / delta_t;
-        }
-        return true;
-    }
-
-    bool eval_jac_g(Ipopt::Index n, const Number* x, bool new_x, Ipopt::Index m, Ipopt::Index nele_jac, Ipopt::Index* iRow, Ipopt::Index* jCol, Number* values) override {
-        if (values == nullptr) {
-            for (Ipopt::Index i = 0; i < m; ++i) {
-                iRow[i] = i;
-                jCol[i] = i;  // Simple sparse structure, fill in row/column indices
-            }
-        } else {
-            // Assign values for nonzero Jacobian entries
-            for (Ipopt::Index i = 0; i < m; ++i) {
-                values[i] = 1.0;
-            }
-        }
-        return true;
-    }
-
-    void finalize_solution(SolverReturn status, Ipopt::Index n, const Number* x, const Number* z_L, const Number* z_U,
-                           Ipopt::Index m, const Number* g, const Number* lambda, Number obj_value,
-                           const IpoptData* ip_data, IpoptCalculatedQuantities* ip_cq) override {
-        for (Ipopt::Index i = 0; i < n_; ++i) {
-            x_opt_[i] = x[i];
-            y_opt_[i] = x[i + n_];
-            d_opt_[i] = x[i + 2 * n_];
-        }
-        // visualize_result();
-    }
-
-    void visualize_result() {
-        // // Plot initial path
-        plt::figure_size(1200, 800);
-        // plt::subplot(2, 2, 1);
-        plt::plot(x_list_, y_list_, "bo--");
-        plt::plot(x_opt_, y_opt_, "ro-");
-        plt::xlabel("X");
-        plt::ylabel("Y");
-        plt::legend();
-
-        // // Plot deviation
-        // plt::subplot(2, 2, 2);
-        // plt::plot(std::vector<double>(d_opt_.begin(), d_opt_.end()), "go-");
-        // plt::xlabel("Waypoint Ipopt::Index");
-        // plt::ylabel("Deviation (d)");
-        // plt::legend();
-
-        // // Calculate and plot velocities
-        // std::vector<double> vel_x(n_ - 1), vel_y(n_ - 1), vel_magnitude(n_ - 1);
-        // double delta_t = 1.0, v_max = 1.0;
-        // for (Ipopt::Index i = 0; i < n_ - 1; ++i) {
-        //     vel_x[i] = (x_opt_[i + 1] - x_opt_[i]) / delta_t;
-        //     vel_y[i] = (y_opt_[i + 1] - y_opt_[i]) / delta_t;
-        //     vel_magnitude[i] = std::sqrt(vel_x[i] * vel_x[i] + vel_y[i] * vel_y[i]);
-        // }
-
-        // plt::subplot(2, 2, 3);
-        // plt::plot(vel_magnitude, "mo-");
-        // // plt::axhline(v_max, 0, n_, {{"color", "r"}, {"linestyle", "--"}, {"label", "Max Velocity"}});
-        // plt::xlabel("Waypoint Ipopt::Index");
-        // plt::ylabel("Velocity");
-        // plt::legend();
-
-        // plt::tight_layout();
-        plt::show();
-    }
-
-private:
-    std::vector<double> x_list_, y_list_;
-    Ipopt::Index n_;
-    std::vector<double> x_opt_, y_opt_, d_opt_;
-};
+#include <cmath>
+#include "matplotlibcpp.h"
+using namespace casadi;
+using namespace std;
+namespace plt = matplotlibcpp;
 
 int main() {
+    // Parameters and fixed initial pose
+    DM data = DM({
+    { 0.0714334, 0.00638967, 1.66001}
+    ,{ 0.171036, 0.015299, 1.66001}
+    ,{ 0.270638, 0.0242084, 1.66001}
+    ,{0.37024, 0.0331177, 1.66001}
+    ,{0.469843, 0.0420271, 1.66001}
+    ,{0.569445, 0.0509365, 1.66001}
+    ,{0.669047, 0.0598458, 1.66001}
+    ,{0.76865, 0.0687552, 1.66001}
+    ,{0.868252, 0.0776645, 1.66001}
+    ,{0.967854, 0.0865739, 1.66001}
+    ,{1.06746, 0.0954833, 1.66001}
+    ,{1.16706, 0.104393, 1.66001}
+    ,{1.26666, 0.113302, 1.66001}
+    ,{1.36626, 0.122211, 1.66001}
+    ,{1.46587, 0.131121, 1.66001}
+    ,{1.56547, 0.14003, 1.66001}
+    ,{1.66507, 0.148939, 1.66001}
+    ,{1.76467, 0.157849, 1.66001}
+    ,{1.86428, 0.166758, 1.66001}
+    ,{1.96388, 0.175668, 1.66001}
+    ,{2.06348, 0.184577, 1.66001}
+    ,{2.16308, 0.193486, 1.66001}
+    ,{2.26268, 0.202396, 1.66001}
+    ,{2.36229, 0.211305, 1.66001}
+    ,{2.46189, 0.220214, 1.66001}
+    ,{2.56149, 0.229124, 1.66001}
+    ,{2.66109, 0.238033, 1.66001}
+    ,{2.7607, 0.246942, 1.66001}
+    ,{2.8603, 0.255852, 1.66001}
+    ,{2.9599, 0.264761, 1.66001}
+    ,{3.0595, 0.27367, 1.66001}
+    ,{3.15911, 0.28258, 1.66001}
+    ,{3.25871, 0.291489, 1.66001}
+    ,{3.35831, 0.300399, 1.66001}
+    ,{3.45791, 0.309308, 1.66001}
+    ,{3.55751, 0.318217, 1.66001}
+    ,{3.65712, 0.327127, 1.66001}
+    ,{3.75672, 0.336036, 1.66001}
+    ,{3.85632, 0.344945, 1.66001}
+    ,{3.95592, 0.353855, 1.66001}
+    ,{4.05553, 0.362764, 1.66001}
+    ,{4.15513, 0.371673, 1.66001}
+    });
 
+    DM A_p = DM::horzcat({{-0.0645709, 0.0645709}, {-0.997913, 0.997913}});
+    DM b_p = DM::vertcat({0.737278, 0.632449});
+
+    vector<double> x_list, y_list, theta_list;
+    int n = data.size1();
+
+    std::cout<< " n " << n << " cols " << data.size2() << std::endl;
+
+    for (int i = 0; i < n; ++i) {
+        x_list.push_back(data(i, 0).scalar());
+        y_list.push_back(data(i, 1).scalar());
+        theta_list.push_back(data(i, 2).scalar());  // Sample orientation values
+    }
+
+    double curvature_weight = 1.0;
+    double curvature_rate_weight = 1.0;
+    double distance_weight = 1.0;
+    double v_max = 0.2;
+    double delta_t = 0.1;
+    double wheelbase = 1.0;
+
+    // Initial fixed pose
+    double x0_val = x_list[0];
+    double y0_val = y_list[0];
+    double theta0_val = theta_list[0];
+
+    // Define optimization variables for remaining poses, velocities, and steering angles
+    MX x = MX::sym("x", n - 1);
+    MX y = MX::sym("y", n - 1);
+    MX theta = MX::sym("theta", n - 1);
+    MX v = MX::sym("v", n - 1);
+    MX delta = MX::sym("delta", n - 1);
+
+    // Objective function
+    MX objective = 0;
+    for (int i = 0; i < n - 3; ++i) {
+        MX dds_x = x(i+2) - 2 * x(i+1) + x(i);
+        MX dds_y = y(i+2) - 2 * y(i+1) + y(i);
+        objective += curvature_weight * (dds_x*dds_x + dds_y*dds_y);
+    }
     
-  Eigen::MatrixXd data(42, 3);
-  data << 0.0714334, 0.00638967, 1.66001
-    ,0.171036, 0.015299, 1.66001
-    ,0.270638, 0.0242084, 1.66001
-    ,0.37024, 0.0331177, 1.66001
-    ,0.469843, 0.0420271, 1.66001
-    ,0.569445, 0.0509365, 1.66001
-    ,0.669047, 0.0598458, 1.66001
-    ,0.76865, 0.0687552, 1.66001
-    ,0.868252, 0.0776645, 1.66001
-    ,0.967854, 0.0865739, 1.66001
-    ,1.06746, 0.0954833, 1.66001
-    ,1.16706, 0.104393, 1.66001
-    ,1.26666, 0.113302, 1.66001
-    ,1.36626, 0.122211, 1.66001
-    ,1.46587, 0.131121, 1.66001
-    ,1.56547, 0.14003, 1.66001
-    ,1.66507, 0.148939, 1.66001
-    ,1.76467, 0.157849, 1.66001
-    ,1.86428, 0.166758, 1.66001
-    ,1.96388, 0.175668, 1.66001
-    ,2.06348, 0.184577, 1.66001
-    ,2.16308, 0.193486, 1.66001
-    ,2.26268, 0.202396, 1.66001
-    ,2.36229, 0.211305, 1.66001
-    ,2.46189, 0.220214, 1.66001
-    ,2.56149, 0.229124, 1.66001
-    ,2.66109, 0.238033, 1.66001
-    ,2.7607, 0.246942, 1.66001
-    ,2.8603, 0.255852, 1.66001
-    ,2.9599, 0.264761, 1.66001
-    ,3.0595, 0.27367, 1.66001
-    ,3.15911, 0.28258, 1.66001
-    ,3.25871, 0.291489, 1.66001
-    ,3.35831, 0.300399, 1.66001
-    ,3.45791, 0.309308, 1.66001
-    ,3.55751, 0.318217, 1.66001
-    ,3.65712, 0.327127, 1.66001
-    ,3.75672, 0.336036, 1.66001
-    ,3.85632, 0.344945, 1.66001
-    ,3.95592, 0.353855, 1.66001
-    ,4.05553, 0.362764, 1.66001
-    ,4.15513, 0.371673, 1.66001;
-    // data << 0.0714334, 0.00638967, 1.66001
-    // ,0.171036, 0.015299, 1.66001
-    // ,0.270638, 0.0242084, 1.66001
-    // ,0.37024, 0.0331177, 1.66001
-    // ,0.469843, 0.0420271, 1.66001;
-
-    std::vector<double> x_list;
-    std::vector<double> y_list;
-    std::vector<double> theta_list;
-
-    for(int i=0; i<data.rows(); i++){
-      x_list.push_back(data.row(i)[0]);
-      y_list.push_back(data.row(i)[1]);
-      theta_list.push_back(data.row(i)[2]);
+    for (int i = 0; i < n - 4; ++i) {
+        MX ddds_x = x(i+3) - 3 * x(i+2) + 3 * x(i+1) - x(i);
+        MX ddds_y = y(i+3) - 3 * y(i+2) + 3 * y(i+1) - y(i);
+        objective += curvature_rate_weight * (ddds_x*ddds_x + ddds_y*ddds_y);
     }
 
-    PathOptimizationNLP* clone_opt = new PathOptimizationNLP(x_list, y_list, theta_list);
-    SmartPtr<TNLP> mynlp = clone_opt;
-
-    SmartPtr<IpoptApplication> app = IpoptApplicationFactory();
-    
-    app->Options()->SetNumericValue("tol", 1e-7);
-    app->Options()->SetIntegerValue("print_level", 5);
-    app->Options()->SetStringValue("mu_strategy", "adaptive");
-    app->Options()->SetStringValue("output_file", "ipopt_output.txt"); // Output to file
-    app->Options()->SetStringValue("check_derivatives_for_naninf", "yes"); // Check derivatives for NaN/Inf
-    app->Options()->SetStringValue("print_user_options", "yes"); // Print user options (problem-specific)
-    app->Options()->SetStringValue("nlp_file", "problem_formulation.nlp"); // Save NLP formulation
-
-    ApplicationReturnStatus status = app->Initialize();
-    if (status != Solve_Succeeded) {
-        std::cout << "Error during initialization!" << std::endl;
-        return (int) status;
+     // Penalty for distance between consecutive points
+    for (int i = 0; i < n - 2; ++i) {
+        MX distance_sq = (x(i+1) - x(i))*(x(i+1) - x(i)) + (y(i+1) - y(i))*(y(i+1) - y(i));
+        objective += distance_weight * distance_sq;
     }
 
-    status = app->OptimizeTNLP(mynlp);
-    if (status == Solve_Succeeded) {
-        // clone_opt->visualize_result();
-        std::cout << "Optimization succeeded!" << std::endl;
-    } else {
-        std::cout << "Optimization failed!" << std::endl;
+    // Constraints
+    vector<MX> g;
+    vector<double> lb_g, ub_g;
+
+    // Kinematic constraints for car-like dynamics
+    for (int i = 0; i < n - 2; ++i) {
+        g.push_back(x(i+1) - (x(i) + delta_t * v(i) * cos(theta(i))));
+        lb_g.push_back(0);
+        ub_g.push_back(0);
+
+        g.push_back(y(i+1) - (y(i) + delta_t * v(i) * sin(theta(i))));
+        lb_g.push_back(0);
+        ub_g.push_back(0);
+
+        g.push_back(theta(i+1) - (theta(i) + delta_t * v(i) * tan(delta(i)) / wheelbase));
+        lb_g.push_back(0);
+        ub_g.push_back(0);
     }
+
+    // Velocity and steering angle constraints
+    double max_steering_angle = M_PI / 6;  // 30 degrees in radians
+    for (int i = 0; i < n - 1; ++i) {
+        g.push_back(v(i));
+        lb_g.push_back(0);
+        ub_g.push_back(v_max);
+
+        g.push_back(delta(i));
+        lb_g.push_back(-max_steering_angle);
+        ub_g.push_back(max_steering_angle);
+    }
+
+    // Boundary constraints
+    for (int i = 0; i < n - 1; ++i) {
+        for (int j = 0; j < 2; ++j) {
+            g.push_back(x(i) * A_p(j, 0) + y(i) * A_p(j, 1));
+            lb_g.push_back(-std::numeric_limits<double>::infinity());
+            ub_g.push_back(static_cast<double>(b_p(j).scalar())); // Cast to double
+        }
+    }
+
+    // Define NLP problem without the fixed initial pose in the variables
+    MX nlp_vars = vertcat(x, y, theta, v, delta);
+    MX nlp = MX::vertcat({objective, vertcat(g)});
+
+    // Set up IPOPT solver
+    Dict opts;
+    opts["ipopt.print_level"] = 5;
+    opts["print_time"] = false;
+    opts["ipopt.tol"] = 1e-6;
+    opts["ipopt.max_iter"] = 1000;
+    Function solver = nlpsol("solver", "ipopt", {{"x", nlp_vars}, {"f", objective}, {"g", vertcat(g)}}, opts);
+
+    // Initial guess (excluding the fixed initial pose)
+    vector<double> x0_guess;
+    for (int i = 1; i < n; ++i) x0_guess.push_back(x_list[i]);
+    for (int i = 1; i < n; ++i) x0_guess.push_back(y_list[i]);
+    for (int i = 1; i < n; ++i) x0_guess.push_back(theta_list[i]);
+    for (int i = 0; i < n - 1; ++i) x0_guess.push_back(v_max);
+    for (int i = 0; i < n - 1; ++i) x0_guess.push_back(0);
+
+    vector<double> lbx, ubx;
+
+    // Bounds for x and y positions (no bounds in this example, so set to -inf, inf)
+    for (int i = 0; i < n - 1; ++i) {
+        lbx.push_back(-std::numeric_limits<double>::infinity()); // x lower bound
+        ubx.push_back(std::numeric_limits<double>::infinity());  // x upper bound
+        lbx.push_back(-std::numeric_limits<double>::infinity()); // y lower bound
+        ubx.push_back(std::numeric_limits<double>::infinity());  // y upper bound
+    }
+
+    // Bounds for theta (no specific bounds in this example, set to -inf, inf)
+    for (int i = 0; i < n - 1; ++i) {
+        lbx.push_back(-std::numeric_limits<double>::infinity()); // theta lower bound
+        ubx.push_back(std::numeric_limits<double>::infinity());  // theta upper bound
+    }
+
+    // Bounds for v (velocity) - [0, v_max]
+    for (int i = 0; i < n - 1; ++i) {
+        lbx.push_back(0);            // Min velocity (no reversing)
+        ubx.push_back(v_max);         // Max velocity
+    }
+
+    // Bounds for delta (steering angle)
+    for (int i = 0; i < n - 1; ++i) {
+        lbx.push_back(-max_steering_angle); // Min steering angle
+        ubx.push_back(max_steering_angle);  // Max steering angle
+    }
+
+
+    std::map<std::string, DM> arg;
+    arg["lbx"] = lbx;
+    arg["ubx"] = ubx;
+    arg["lbg"] = lb_g;
+    arg["ubg"] = ub_g;
+    arg["x0"] = x0_guess;
+    // Solve the problem
+    std::map<string, DM> solution = solver(arg);
+
+    // // Extract optimized values
+    vector<double> x_opt(solution["x"](Slice(0, n - 1)).nonzeros());
+    vector<double> y_opt(solution["x"](Slice(n - 1, 2 * (n - 1))).nonzeros());
+    vector<double> theta_opt(solution["x"](Slice(2 * (n - 1), 3 * (n - 1))).nonzeros());
+    vector<double> v_opt(solution["x"](Slice(3 * (n - 1), 4 * (n - 1))).nonzeros());
+    vector<double> delta_opt(solution["x"](Slice(4 * (n - 1), 5 * (n - 1))).nonzeros());
+
+    cout << "Optimized Path: \n";
+    // for (int i = 0; i < x_opt.size(); ++i) {
+    //     cout << "X: " << x_opt[i] << ", Y: " << y_opt[i] << endl;
+    // }
+
+    std::vector<double> x_values, y_values;
+    for (int i = 0; i < data.size1(); ++i) {
+        x_values.push_back(static_cast<double>(data(i, 0)));  // First column
+        y_values.push_back(static_cast<double>(data(i, 1)));  // Second column
+    }
+
+    // Generate x values from -5 to 5, with 400 points
+    int num_points = 400;
+    std::vector<double> x_vals(num_points);
+    for (int i = 0; i < num_points; ++i) {
+        x_vals[i] = -5.0 + i * (10.0 / (num_points - 1));  // from -5 to 5
+    }
+
+    // Calculate y values for the lines based on A_p and b_p
+    std::vector<double> y1_vals(num_points);
+    std::vector<double> y2_vals(num_points);
+
+    for (int i = 0; i < num_points; ++i) {
+        y1_vals[i] = (static_cast<double>(b_p(0)) -  static_cast<double>(A_p(0, 0)) * x_vals[i]) /  static_cast<double>(A_p(0, 1));
+        y2_vals[i] = (static_cast<double>(b_p(1)) -  static_cast<double>(A_p(1, 0)) * x_vals[i]) /  static_cast<double>(A_p(1, 1));
+    }
+
+    // Plot the lines with labels
+    plt::figure();
+    plt::plot(x_vals, y1_vals, "r-");
+    plt::plot(x_vals, y2_vals, "b-");
+    plt::plot(x_values, y_values, "bo-");  // Blue line with circle markers
+    plt::plot(x_opt, y_opt, "b-");
+    plt::legend();
+    plt::title("Trajectory Optimization");
+    plt::xlabel("X position");
+    plt::ylabel("Y position");
+    plt::show();
+
     return 0;
 }
-
-
-// // using namespace Ipopt;
-
-// int main(int argv, char* argc[])
-// {
-//   // Create a new instance of your nlp
-//   //  (use a SmartPtr, not raw)
-//   TrajectoryTracking* traj_tracker = new TrajectoryTracking();
-//   size_t n = 5;
-//   double curvature_weight = 1.0;
-//   double curvature_rate_weight = 1.0;
-//   double deviation_weight = 1.0;
-//   double delta_t = 1.0;
-//   double v_max = 1.0;
-
-//   Eigen::MatrixXd data(n, 3);
-//   // data << 0.0714334, 0.00638967, 1.66001
-//   //   ,0.171036, 0.015299, 1.66001
-//   //   ,0.270638, 0.0242084, 1.66001
-//   //   ,0.37024, 0.0331177, 1.66001
-//   //   ,0.469843, 0.0420271, 1.66001
-//   //   ,0.569445, 0.0509365, 1.66001
-//   //   ,0.669047, 0.0598458, 1.66001
-//   //   ,0.76865, 0.0687552, 1.66001
-//   //   ,0.868252, 0.0776645, 1.66001
-//   //   ,0.967854, 0.0865739, 1.66001
-//   //   ,1.06746, 0.0954833, 1.66001
-//   //   ,1.16706, 0.104393, 1.66001
-//   //   ,1.26666, 0.113302, 1.66001
-//   //   ,1.36626, 0.122211, 1.66001
-//   //   ,1.46587, 0.131121, 1.66001
-//   //   ,1.56547, 0.14003, 1.66001
-//   //   ,1.66507, 0.148939, 1.66001
-//   //   ,1.76467, 0.157849, 1.66001
-//   //   ,1.86428, 0.166758, 1.66001
-//   //   ,1.96388, 0.175668, 1.66001
-//   //   ,2.06348, 0.184577, 1.66001
-//   //   ,2.16308, 0.193486, 1.66001
-//   //   ,2.26268, 0.202396, 1.66001
-//   //   ,2.36229, 0.211305, 1.66001
-//   //   ,2.46189, 0.220214, 1.66001
-//   //   ,2.56149, 0.229124, 1.66001
-//   //   ,2.66109, 0.238033, 1.66001
-//   //   ,2.7607, 0.246942, 1.66001
-//   //   ,2.8603, 0.255852, 1.66001
-//   //   ,2.9599, 0.264761, 1.66001
-//   //   ,3.0595, 0.27367, 1.66001
-//   //   ,3.15911, 0.28258, 1.66001
-//   //   ,3.25871, 0.291489, 1.66001
-//   //   ,3.35831, 0.300399, 1.66001
-//   //   ,3.45791, 0.309308, 1.66001
-//   //   ,3.55751, 0.318217, 1.66001
-//   //   ,3.65712, 0.327127, 1.66001
-//   //   ,3.75672, 0.336036, 1.66001
-//   //   ,3.85632, 0.344945, 1.66001
-//   //   ,3.95592, 0.353855, 1.66001
-//   //   ,4.05553, 0.362764, 1.66001
-//     // ,4.15513, 0.371673, 1.66001;
-//     data << 0.0714334, 0.00638967, 1.66001
-//     ,0.171036, 0.015299, 1.66001
-//     ,0.270638, 0.0242084, 1.66001
-//     ,0.37024, 0.0331177, 1.66001
-//     ,0.469843, 0.0420271, 1.66001;
-
-//   VectorXd x_init(n), y_init(n), d_init(n), theta_list(n);
-//   x_init = data.col(0);
-//   y_init = data.col(1);
-//   d_init.setZero();
-//   theta_list = data.col(2);
-
-//   traj_tracker->init(n, curvature_weight, curvature_rate_weight, deviation_weight, delta_t, v_max,
-//         x_init, y_init, d_init, theta_list);
-        
-//   Ipopt::SmartPtr<Ipopt::TNLP> mynlp = traj_tracker;
-
-
-  
-  
-//   // Create a new instance of IpoptApplication
-//   //  (use a SmartPtr, not raw)
-//   // We are using the factory, since this allows us to compile this
-//   // example with an Ipopt Windows DLL
-//   Ipopt::SmartPtr<Ipopt::IpoptApplication> app = IpoptApplicationFactory();
-//   // app->RethrowNonIpoptException(true);
-  
-//   // Change some options
-//   // Note: The following choices are only examples, they might not be
-//   //       suitable for your optimization problem.
-//   app->Options()->SetNumericValue("tol", 1e-7);
-//   app->Options()->SetIntegerValue("print_level", 5);
-//   app->Options()->SetStringValue("mu_strategy", "adaptive");
-//   app->Options()->SetStringValue("output_file", "ipopt_output.txt"); // Output to file
-//   app->Options()->SetStringValue("check_derivatives_for_naninf", "yes"); // Check derivatives for NaN/Inf
-//   app->Options()->SetStringValue("print_user_options", "yes"); // Print user options (problem-specific)
-//   app->Options()->SetStringValue("nlp_file", "problem_formulation.nlp"); // Save NLP formulation
-
-//   // app->Options()->SetStringValue("warm_start_init_point", "true");
-//   // The following overwrites the default name (ipopt.opt) of the
-//   // options file
-//   // app->Options()->SetStringValue("option_file_name", "hs071.opt");
-  
-//   // Initialize the IpoptApplication and process the options
-//   Ipopt::ApplicationReturnStatus status;
-//   status = app->Initialize();
-//   if (status != Ipopt::Solve_Succeeded) {
-//     std::cout << std::endl << std::endl << "*** Error during initialization!" << std::endl;
-//     return (int) status;
-//   }
-  
-//   // // Ask Ipopt to solve the problem
-//   status = app->OptimizeTNLP(mynlp);
-  
-//   if (status == Ipopt::Solve_Succeeded) {
-//     std::cout << std::endl << std::endl << "*** The problem solved!" << std::endl;
-//   }
-//   else {
-//     std::cout << std::endl << std::endl << "*** The problem FAILED!" << std::endl;
-//   }
-  
-
-//   // return (int) status;
-// }
