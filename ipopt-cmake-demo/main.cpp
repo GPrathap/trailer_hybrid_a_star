@@ -3,56 +3,59 @@
 #include <iostream>
 #include <cmath>
 #include "matplotlibcpp.h"
+#include <nlohmann/json.hpp>
+
 using namespace casadi;
 using namespace std;
 namespace plt = matplotlibcpp;
 
+using json = nlohmann::json;
+
 int main() {
     // Parameters and fixed initial pose
     DM data = DM({
-    { 0.0714334, 0.00638967, 1.66001}
-    ,{ 0.171036, 0.015299, 1.66001}
-    ,{ 0.270638, 0.0242084, 1.66001}
-    ,{0.37024, 0.0331177, 1.66001}
-    ,{0.469843, 0.0420271, 1.66001}
-    ,{0.569445, 0.0509365, 1.66001}
-    ,{0.669047, 0.0598458, 1.66001}
-    ,{0.76865, 0.0687552, 1.66001}
-    ,{0.868252, 0.0776645, 1.66001}
-    ,{0.967854, 0.0865739, 1.66001}
-    ,{1.06746, 0.0954833, 1.66001}
-    ,{1.16706, 0.104393, 1.66001}
-    ,{1.26666, 0.113302, 1.66001}
-    ,{1.36626, 0.122211, 1.66001}
-    ,{1.46587, 0.131121, 1.66001}
-    ,{1.56547, 0.14003, 1.66001}
-    ,{1.66507, 0.148939, 1.66001}
-    ,{1.76467, 0.157849, 1.66001}
-    ,{1.86428, 0.166758, 1.66001}
-    ,{1.96388, 0.175668, 1.66001}
-    ,{2.06348, 0.184577, 1.66001}
-    ,{2.16308, 0.193486, 1.66001}
-    ,{2.26268, 0.202396, 1.66001}
-    ,{2.36229, 0.211305, 1.66001}
-    ,{2.46189, 0.220214, 1.66001}
-    ,{2.56149, 0.229124, 1.66001}
-    ,{2.66109, 0.238033, 1.66001}
-    ,{2.7607, 0.246942, 1.66001}
-    ,{2.8603, 0.255852, 1.66001}
-    ,{2.9599, 0.264761, 1.66001}
-    ,{3.0595, 0.27367, 1.66001}
-    ,{3.15911, 0.28258, 1.66001}
-    ,{3.25871, 0.291489, 1.66001}
-    ,{3.35831, 0.300399, 1.66001}
-    ,{3.45791, 0.309308, 1.66001}
-    ,{3.55751, 0.318217, 1.66001}
-    ,{3.65712, 0.327127, 1.66001}
-    ,{3.75672, 0.336036, 1.66001}
-    ,{3.85632, 0.344945, 1.66001}
-    ,{3.95592, 0.353855, 1.66001}
-    ,{4.05553, 0.362764, 1.66001}
-    ,{4.15513, 0.371673, 1.66001}
-    });
+    {0.0714334, 0.00638967, 1.66001},
+    {0.171036, 0.015299, 1.66001},
+    {0.270638, 0.0242084, 1.66001},
+    {0.37024, 0.0331177, 1.66001},
+    {0.469843, 0.0420271, 1.66001},
+    {0.569445, 0.0509365, 1.66001},
+    {0.669047, 0.0598458, 1.66001},
+    {0.76865, 0.0687552, 1.66001},
+    {0.868252, 0.0776645, 1.66001},
+    {0.967854, 0.0865739, 1.66001},
+    {1.06746, 0.0954833, 1.66001},
+    {1.16706, 0.104393, 1.66001},
+    {1.26666, 0.113302, 1.66001},
+    {1.36626, 0.122211, 1.66001},
+    {1.46587, 0.131121, 1.66001},
+    {1.56547, 0.14003, 1.66001},
+    {1.66507, 0.148939, 1.66001},
+    {1.76467, 0.157849, 1.66001},
+    {1.86428, 0.166758, 1.66001},
+    {1.96388, 0.175668, 1.66001},
+    {2.06348, 0.184577, 1.66001},
+    {2.16308, 3.193486, 1.66001},
+    {2.26268, 0.202396, 1.66001},
+    {2.36229, 0.211305, 1.66001},
+    {2.46189, 3.220214, 1.66001},
+    {2.56149, 0.229124, 1.66001},
+    {2.66109, 0.238033, 1.66001},
+    {2.7607, 0.246942, 1.66001},
+    {2.8603, 0.255852, 1.66001},
+    {2.9599, 0.264761, 1.66001},
+    {3.0595, 0.27367, 1.66001},
+    {3.15911, 3.28258, 1.66001},
+    {3.25871, 0.291489, 1.66001},
+    {3.35831, 0.300399, 1.66001},
+    {3.45791, 0.309308, 1.66001},
+    {3.55751, 3.318217, 1.66001},
+    {3.65712, 0.327127, 1.66001},
+    {3.75672, 0.336036, 1.66001},
+    {3.85632, 0.444945, 1.66001},
+    {3.95592, 0.453855, 1.66001},
+    {4.05553, 0.462764, 1.66001},
+    {4.15513, 0.471673, 1.66001}});
 
     DM A_p = DM::horzcat({{-0.0645709, 0.0645709}, {-0.997913, 0.997913}});
     DM b_p = DM::vertcat({0.737278, 0.632449});
@@ -66,12 +69,13 @@ int main() {
         x_list.push_back(data(i, 0).scalar());
         y_list.push_back(data(i, 1).scalar());
         theta_list.push_back(data(i, 2).scalar());  // Sample orientation values
+        std::cout<< " " << data(i, 0).scalar() << " " << data(i, 1).scalar() << " " << data(i, 2).scalar() << std::endl;
     }
 
     double curvature_weight = 1.0;
     double curvature_rate_weight = 1.0;
     double distance_weight = 1.0;
-    double v_max = 0.2;
+    double v_max = 1.0;
     double delta_t = 0.1;
     double wheelbase = 1.0;
 
@@ -88,22 +92,23 @@ int main() {
     MX delta = MX::sym("delta", n - 1);
 
     // Objective function
-    MX objective = 0;
-    for (int i = 0; i < n - 3; ++i) {
-        MX dds_x = x(i+2) - 2 * x(i+1) + x(i);
-        MX dds_y = y(i+2) - 2 * y(i+1) + y(i);
-        objective += curvature_weight * (dds_x*dds_x + dds_y*dds_y);
-    }
+    MX objective = 0.0;
+    // for (int i = 0; i < n - 3; ++i) {
+    //     MX dds_x = x(i+2) - 2 * x(i+1) + x(i);
+    //     MX dds_y = y(i+2) - 2 * y(i+1) + y(i);
+    //     objective += curvature_weight * (dds_x*dds_x + dds_y*dds_y);
+    // }
     
-    for (int i = 0; i < n - 4; ++i) {
-        MX ddds_x = x(i+3) - 3 * x(i+2) + 3 * x(i+1) - x(i);
-        MX ddds_y = y(i+3) - 3 * y(i+2) + 3 * y(i+1) - y(i);
-        objective += curvature_rate_weight * (ddds_x*ddds_x + ddds_y*ddds_y);
-    }
+    // for (int i = 0; i < n - 4; ++i) {
+    //     MX ddds_x = x(i+3) - 3 * x(i+2) + 3 * x(i+1) - x(i);
+    //     MX ddds_y = y(i+3) - 3 * y(i+2) + 3 * y(i+1) - y(i);
+    //     objective += curvature_rate_weight * (ddds_x*ddds_x + ddds_y*ddds_y);
+    // }
 
      // Penalty for distance between consecutive points
     for (int i = 0; i < n - 2; ++i) {
-        MX distance_sq = (x(i+1) - x(i))*(x(i+1) - x(i)) + (y(i+1) - y(i))*(y(i+1) - y(i));
+        MX distance_sq = MX::pow(x(i+1) - x(i), 2) + MX::pow((y(i+1) - y(i)), 2);
+        std::cout<< distance_sq << std::endl;
         objective += distance_weight * distance_sq;
     }
 
@@ -112,44 +117,43 @@ int main() {
     vector<double> lb_g, ub_g;
 
     // Kinematic constraints for car-like dynamics
-    for (int i = 0; i < n - 2; ++i) {
-        g.push_back(x(i+1) - (x(i) + delta_t * v(i) * cos(theta(i))));
-        lb_g.push_back(0);
-        ub_g.push_back(0);
+    // for (int i = 0; i < n - 2; ++i) {
+    //     g.push_back(x(i+1) - (x(i) + delta_t * v(i) * cos(theta(i))));
+    //     lb_g.push_back(0);
+    //     ub_g.push_back(0);
 
-        g.push_back(y(i+1) - (y(i) + delta_t * v(i) * sin(theta(i))));
-        lb_g.push_back(0);
-        ub_g.push_back(0);
+    //     g.push_back(y(i+1) - (y(i) + delta_t * v(i) * sin(theta(i))));
+    //     lb_g.push_back(0);
+    //     ub_g.push_back(0);
 
-        g.push_back(theta(i+1) - (theta(i) + delta_t * v(i) * tan(delta(i)) / wheelbase));
-        lb_g.push_back(0);
-        ub_g.push_back(0);
-    }
+    //     g.push_back(theta(i+1) - (theta(i) + delta_t * v(i) * tan(delta(i)) / wheelbase));
+    //     lb_g.push_back(0);
+    //     ub_g.push_back(0);
+    // }
 
     // Velocity and steering angle constraints
-    double max_steering_angle = M_PI / 6;  // 30 degrees in radians
-    for (int i = 0; i < n - 1; ++i) {
-        g.push_back(v(i));
-        lb_g.push_back(0);
-        ub_g.push_back(v_max);
+    // double max_steering_angle = M_PI / 6.0;  // 30 degrees in radians
+    // for (int i = 0; i < n - 1; ++i) {
+    //     g.push_back(v(i));
+    //     lb_g.push_back(0);
+    //     ub_g.push_back(v_max);
 
-        g.push_back(delta(i));
-        lb_g.push_back(-max_steering_angle);
-        ub_g.push_back(max_steering_angle);
-    }
+    //     g.push_back(delta(i));
+    //     lb_g.push_back(-max_steering_angle);
+    //     ub_g.push_back(max_steering_angle);
+    // }
 
     // Boundary constraints
-    for (int i = 0; i < n - 1; ++i) {
-        for (int j = 0; j < 2; ++j) {
-            g.push_back(x(i) * A_p(j, 0) + y(i) * A_p(j, 1));
-            lb_g.push_back(-std::numeric_limits<double>::infinity());
-            ub_g.push_back(static_cast<double>(b_p(j).scalar())); // Cast to double
-        }
-    }
+    // for (int i = 0; i < n - 1; ++i) {
+    //     for (int j = 0; j < 2; ++j) {
+    //         g.push_back(x(i) * A_p(j, 0) + y(i) * A_p(j, 1));
+    //         lb_g.push_back(-10000);
+    //         ub_g.push_back(static_cast<double>(b_p(j).scalar())); // Cast to double
+    //     }
+    // }
 
     // Define NLP problem without the fixed initial pose in the variables
     MX nlp_vars = vertcat(x, y, theta, v, delta);
-    MX nlp = MX::vertcat({objective, vertcat(g)});
 
     // Set up IPOPT solver
     Dict opts;
@@ -157,7 +161,9 @@ int main() {
     opts["print_time"] = false;
     opts["ipopt.tol"] = 1e-6;
     opts["ipopt.max_iter"] = 1000;
-    Function solver = nlpsol("solver", "ipopt", {{"x", nlp_vars}, {"f", objective}, {"g", vertcat(g)}}, opts);
+
+    auto g_cons = vertcat(g);
+    Function solver = nlpsol("solver", "ipopt", {{"x", nlp_vars}, {"f", objective}, {"g", g_cons}}, opts);
 
     // Initial guess (excluding the fixed initial pose)
     vector<double> x0_guess;
@@ -167,43 +173,65 @@ int main() {
     for (int i = 0; i < n - 1; ++i) x0_guess.push_back(v_max);
     for (int i = 0; i < n - 1; ++i) x0_guess.push_back(0);
 
-    vector<double> lbx, ubx;
+    // vector<double> lbx, ubx;
 
-    // Bounds for x and y positions (no bounds in this example, so set to -inf, inf)
-    for (int i = 0; i < n - 1; ++i) {
-        lbx.push_back(-std::numeric_limits<double>::infinity()); // x lower bound
-        ubx.push_back(std::numeric_limits<double>::infinity());  // x upper bound
-        lbx.push_back(-std::numeric_limits<double>::infinity()); // y lower bound
-        ubx.push_back(std::numeric_limits<double>::infinity());  // y upper bound
-    }
+    // // Bounds for x and y positions (no bounds in this example, so set to -10000, 10000)
+    // for (int i = 0; i < n - 1; ++i) {
+    //     lbx.push_back(-10000); // x lower bound
+    //     ubx.push_back(10000);  // x upper bound
+    //     lbx.push_back(-10000); // y lower bound
+    //     ubx.push_back(10000);  // y upper bound
+    // }
 
-    // Bounds for theta (no specific bounds in this example, set to -inf, inf)
-    for (int i = 0; i < n - 1; ++i) {
-        lbx.push_back(-std::numeric_limits<double>::infinity()); // theta lower bound
-        ubx.push_back(std::numeric_limits<double>::infinity());  // theta upper bound
-    }
+    // // Bounds for theta (no specific bounds in this example, set to -10000, 10000)
+    // for (int i = 0; i < n - 1; ++i) {
+    //     lbx.push_back(-10000); // theta lower bound
+    //     ubx.push_back(10000);  // theta upper bound
+    //     // lbx.push_back(-max_steering_angle); // Min steering angle
+    //     // ubx.push_back(max_steering_angle);  // Max steering angle
+    // }
 
-    // Bounds for v (velocity) - [0, v_max]
-    for (int i = 0; i < n - 1; ++i) {
-        lbx.push_back(0);            // Min velocity (no reversing)
-        ubx.push_back(v_max);         // Max velocity
-    }
+    // // Bounds for v (velocity) - [0, v_max]
+    // for (int i = 0; i < n - 1; ++i) {
+    //     // lbx.push_back(0);            // Min velocity (no reversing)
+    //     // ubx.push_back(v_max);         // Max velocity
+    //     lbx.push_back(-10000); // theta lower bound
+    //     ubx.push_back(10000);  // theta upper bound
+    // }
 
-    // Bounds for delta (steering angle)
-    for (int i = 0; i < n - 1; ++i) {
-        lbx.push_back(-max_steering_angle); // Min steering angle
-        ubx.push_back(max_steering_angle);  // Max steering angle
-    }
+    // // Bounds for delta (steering angle)
+    // for (int i = 0; i < n - 1; ++i) {
+    //     lbx.push_back(-10000); // theta lower bound
+    //     ubx.push_back(10000);  // theta upper bound
+    // }
 
 
     std::map<std::string, DM> arg;
-    arg["lbx"] = lbx;
-    arg["ubx"] = ubx;
-    arg["lbg"] = lb_g;
-    arg["ubg"] = ub_g;
+    // arg["lbx"] = lbx;
+    // arg["ubx"] = ubx;
+    // arg["lbg"] = lb_g;
+    // arg["ubg"] = ub_g;
     arg["x0"] = x0_guess;
     // Solve the problem
     std::map<string, DM> solution = solver(arg);
+
+
+    // json problem_data;
+    // problem_data["variables"] = nlp_vars.size1();
+    // // problem_data["objective"] = objective.serialize();
+    // // problem_data["constraints"] = g_cons;
+    // problem_data["bounds"]["lb_vars"] = lbx;
+    // problem_data["bounds"]["ub_vars"] = ubx;
+    // problem_data["bounds"]["lb_constraints"] = lb_g;
+    // problem_data["bounds"]["ub_constraints"] = ub_g;
+
+    // // Save to JSON file
+    // std::ofstream file("nlp_debug.json");
+    // file << problem_data.dump(4);  // Pretty-print with 4 spaces
+    // file.close();
+
+    // std::cout << "NLP problem saved to nlp_debug.json" << std::endl;
+
 
     // // Extract optimized values
     vector<double> x_opt(solution["x"](Slice(0, n - 1)).nonzeros());
@@ -213,9 +241,9 @@ int main() {
     vector<double> delta_opt(solution["x"](Slice(4 * (n - 1), 5 * (n - 1))).nonzeros());
 
     cout << "Optimized Path: \n";
-    // for (int i = 0; i < x_opt.size(); ++i) {
-    //     cout << "X: " << x_opt[i] << ", Y: " << y_opt[i] << endl;
-    // }
+    for (int i = 0; i < x_opt.size(); ++i) {
+        cout << "X: " << x_opt[i] << ", Y: " << y_opt[i] << endl;
+    }
 
     std::vector<double> x_values, y_values;
     for (int i = 0; i < data.size1(); ++i) {
@@ -243,8 +271,8 @@ int main() {
     plt::figure();
     plt::plot(x_vals, y1_vals, "r-");
     plt::plot(x_vals, y2_vals, "b-");
-    plt::plot(x_values, y_values, "bo-");  // Blue line with circle markers
-    plt::plot(x_opt, y_opt, "b-");
+    plt::plot(x_values, y_values, "r-");  // Blue line with circle markers
+    plt::plot(x_opt, y_opt, "k-");
     plt::legend();
     plt::title("Trajectory Optimization");
     plt::xlabel("X position");
