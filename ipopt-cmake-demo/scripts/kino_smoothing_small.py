@@ -53,7 +53,7 @@ b_p = np.array([0.737278, 0.632449])
 
 x_list = data[:, 0]
 y_list = data[:, 1]
-theta_list = np.linspace(0, np.pi / 4, len(x_list))  # Sample orientation values
+theta_list = data[:, 2]  # Sample orientation values
 
 curvature_weight = 1.0
 curvature_rate_weight = 1.0
@@ -77,16 +77,68 @@ delta = ca.MX.sym('delta', n - 1)  # Steering angle for each timestep
 
 # Objective function
 objective = 0
+# for i in range(n - 3):  # Adjust indices since initial pose is excluded
+#     dds_x = x[i+2] - 2 * x[i+1] + x[i]
+#     dds_y = y[i+2] - 2 * y[i+1] + y[i]
+#     objective += curvature_weight * (dds_x**2 + dds_y**2)
+    
+# for i in range(n - 4):
+#     ddds_x = x[i+3] - 3 * x[i+2] + 3 * x[i+1] - x[i]
+#     ddds_y = y[i+3] - 3 * y[i+2] + 3 * y[i+1] - y[i]
+#     objective += curvature_rate_weight * (ddds_x**2 + ddds_y**2)
 
-for i in range(n - 2):
-    distance_sq = (x[i+1] - x[i])**2 + (y[i+1] - y[i])**2
-    print(distance_sq)
-    objective += distance_weight * distance_sq  # Penalize large distances between consecutive points
+# Add penalty for distance between consecutive points
+# for i in range(n - 2):
+#     distance_sq = (x[i+1] - x[i])**2 + (y[i+1] - y[i])**2
+#     print(distance_sq)
+#     objective += distance_weight * distance_sq  # Penalize large distances between consecutive points
 
 # # Constraints
 g = []
 lb_g = []
 ub_g = []
+
+
+# Kinematic constraints for car-like dynamics
+for i in range(n - 2):
+    # x_t+1 = x_t + delta_t * v * cos(theta)
+    g.append(x[i+1] - (x[i] + delta_t * v[i] * ca.cos(theta[i])))
+    # print(x[i+1] - (x[i] + delta_t * v[i] * ca.cos(theta[i])))
+    lb_g.append(0)
+    ub_g.append(0)
+    
+    # # y_t+1 = y_t + delta_t * v * sin(theta)
+    g.append(y[i+1] - (y[i] + delta_t * v[i] * ca.sin(theta[i])))
+    lb_g.append(0)
+    ub_g.append(0)
+    
+    # # theta_t+1 = theta_t + delta_t * v * tan(delta) / L
+    g.append(theta[i+1] - (theta[i] + delta_t * v[i] * ca.tan(delta[i]) / wheelbase))
+    print("   ", theta[i+1] - (theta[i] + delta_t * v[i] * ca.tan(delta[i]) / wheelbase))
+    lb_g.append(0)
+    ub_g.append(0)
+    
+
+
+# # Velocity and steering angle constraints
+# max_steering_angle = np.deg2rad(25)
+max_steering_angle = 0.52
+for i in range(n - 1):
+    # Velocity constraints
+    g.append(v[i])
+    lb_g.append(0.0)  # Minimum velocity (no reversing)
+    ub_g.append(v_max)  # Maximum velocity
+    # Steering angle constraints (example: max steering angle of 30 degrees)
+    g.append(delta[i])
+    lb_g.append(-max_steering_angle)
+    ub_g.append(max_steering_angle)
+    
+
+# for i in range(0, n-1):
+#     for j in range(0, 2):
+#         g.append(x[i]*A_p[j, 0] + y[i]*A_p[j, 1])
+#         lb_g.append(-ca.inf)
+#         ub_g.append(b_p[j])
         
 # Define NLP problem without the fixed initial pose in the variables
 nlp = {'x': ca.vertcat(x, y, theta, v, delta), 'f': objective, 'g': ca.vertcat(*g)}
@@ -103,7 +155,12 @@ solver = ca.nlpsol('solver', 'ipopt', nlp, opts)
 # Initial guess (excluding the fixed initial pose)
 x0_guess = np.hstack((x_list[1:], y_list[1:], theta_list[1:], np.ones(n - 1) * v_max, np.zeros(n - 1)))
 
-solution = solver(x0=x0_guess)
+print(x0_guess)
+
+# Solve the problem
+# solution = solver(x0=x0_guess, lbx=-ca.inf, ubx=ca.inf)
+solution = solver(x0=x0_guess, lbx=-ca.inf, ubx=ca.inf, lbg=lb_g, ubg=ub_g)
+# solution = solver(x0=x0_guess)
 
 
 problem_data = {
@@ -125,8 +182,8 @@ with open("nlp_debug_python.json", "w") as f:
 print("NLP problem saved to nlp_debug.json")
 
 # Extract optimized values, adding back fixed initial pose
-x_opt = np.vstack((np.array([[x0_val]]), solution['x'][:n - 1]))
-y_opt = np.vstack((np.array([[y0_val]]), solution['x'][n - 1:2 * (n - 1)]))
+x_opt = solution['x'][:n - 1]
+y_opt = solution['x'][n - 1:2 * (n - 1)]
 theta_opt = np.vstack((np.array([[theta0_val]]), solution['x'][2 * (n - 1):]))
 v_opt = solution['x'][3 * (n - 1):4 * (n - 1)]
 delta_opt = solution['x'][4 * (n - 1):]

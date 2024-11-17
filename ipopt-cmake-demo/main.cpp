@@ -75,7 +75,8 @@ int main() {
     double curvature_weight = 1.0;
     double curvature_rate_weight = 1.0;
     double distance_weight = 1.0;
-    double v_max = 1.0;
+    double max_steering_angle = 0.6;  // 30 degrees in radians
+    double v_max = 0.5;
     double delta_t = 0.1;
     double wheelbase = 1.0;
 
@@ -90,6 +91,8 @@ int main() {
     MX theta = MX::sym("theta", n - 1);
     MX v = MX::sym("v", n - 1);
     MX delta = MX::sym("delta", n - 1);
+    MX d = MX::sym("d", n - 2);  // Distance variable
+    
 
     // Objective function
     MX objective = 0.0;
@@ -112,10 +115,26 @@ int main() {
     //     std::cout<< distance_sq << std::endl;
     //     objective += distance_sq;
     // }
+    for (int i = 0; i < n - 2; ++i) {
+        objective += distance_weight * d(i);  // Penalize large distances
+    }
 
     // Constraints
     vector<MX> g;
     vector<double> lb_g, ub_g;
+
+
+    g.push_back(x(0) - x0_val);
+    lb_g.push_back(0);
+    ub_g.push_back(0);
+
+    g.push_back(y(0) - y0_val);
+    lb_g.push_back(0);
+    ub_g.push_back(0);
+
+    g.push_back(theta(0) - theta0_val);
+    lb_g.push_back(0);
+    ub_g.push_back(0);
 
     // Kinematic constraints for car-like dynamics
     for (int i = 0; i < n - 2; ++i) {
@@ -139,31 +158,37 @@ int main() {
 
     // Velocity and steering angle constraints
     // double max_steering_angle = M_PI / 6.0;  // 30 degrees in radians
-    double max_steering_angle = 0.5;  // 30 degrees in radians
-    std::cout<< " max_steering_angle " << max_steering_angle  << std::endl;
-    for (int i = 0; i < n - 1; ++i) {
-        g.push_back(v(i));
-        lb_g.push_back(0.0);
-        ub_g.push_back(v_max);
+    // 
+    // std::cout<< " max_steering_angle " << max_steering_angle  << std::endl;
+    // for (int i = 0; i < n - 1; ++i) {
+    //     g.push_back(v(i));
+    //     lb_g.push_back(0.0);
+    //     ub_g.push_back(v_max);
 
-        g.push_back(delta(i));
-        lb_g.push_back(-max_steering_angle);
-        ub_g.push_back(max_steering_angle);
-    }
+    //     g.push_back(delta(i));
+    //     lb_g.push_back(-max_steering_angle);
+    //     ub_g.push_back(max_steering_angle);
+    // }
 
     // // Boundary constraints
-    // for (int i = 0; i < n - 1; ++i) {
-    //     for (int j = 0; j < 2; ++j) {
-    //         g.push_back(x(i) * A_p(j, 0) + y(i) * A_p(j, 1));
-    //         lb_g.push_back(-casadi::inf);
-    //         ub_g.push_back(static_cast<double>(b_p(j).scalar())); // Cast to double
-    //     }
+    for (int i = 0; i < n - 1; ++i) {
+        for (int j = 0; j < 2; ++j) {
+            g.push_back(x(i) * A_p(j, 0) + y(i) * A_p(j, 1));
+            lb_g.push_back(-casadi::inf);
+            ub_g.push_back(static_cast<double>(b_p(j).scalar())); // Cast to double
+        }
+    }
+
+    // for (int i = 0; i < n - 2; ++i) {
+    //     g.push_back(pow(d(i), 2) - (pow(x(i+1) - x(i), 2) + pow(y(i+1) - y(i), 2)));
+    //     lb_g.push_back(0.0);
+    //     ub_g.push_back(0.0);
     // }
 
 
 
     // Define NLP problem without the fixed initial pose in the variables
-    MX nlp_vars = vertcat(x, y, theta, v, delta);
+    MX nlp_vars = vertcat(x, y, theta, v, delta, d);
 
     // std::cout<< " " << vars.size1() << " " << vars.size2() << std::endl;
     // Set up IPOPT solver
@@ -195,47 +220,53 @@ int main() {
     for (int i = 0; i < n - 1; ++i) {
         x0_guess.push_back(0.0);
     }
+    for (int i = 0; i < n - 2; ++i) {
+        x0_guess.push_back(0.1);
+    }
 
     vector<double> lbx, ubx;
 
     // // Bounds for x and y positions (no bounds in this example, so set to -10000, 10000)
     for (int i = 0; i < n - 1; ++i) {
-        lbx.push_back(-10000); // x lower bound
-        ubx.push_back(10000);  // x upper bound
-        lbx.push_back(-10000); // y lower bound
-        ubx.push_back(10000);  // y upper bound
+        lbx.push_back(-casadi::inf); // x lower bound
+        ubx.push_back(casadi::inf);  // x upper bound
+        lbx.push_back(-casadi::inf); // y lower bound
+        ubx.push_back(casadi::inf);  // y upper bound
     }
 
     // // Bounds for theta (no specific bounds in this example, set to -10000, 10000)
     for (int i = 0; i < n - 1; ++i) {
-        lbx.push_back(-10000); // theta lower bound
-        ubx.push_back(10000);  // theta upper bound
+        lbx.push_back(-casadi::pi); // theta lower bound
+        ubx.push_back(casadi::pi);  // theta upper bound
         // lbx.push_back(-max_steering_angle); // Min steering angle
         // ubx.push_back(max_steering_angle);  // Max steering angle
     }
 
     // // Bounds for v (velocity) - [0, v_max]
     for (int i = 0; i < n - 1; ++i) {
-        // lbx.push_back(0);            // Min velocity (no reversing)
-        // ubx.push_back(v_max);         // Max velocity
-        lbx.push_back(-10000); // theta lower bound
-        ubx.push_back(10000);  // theta upper bound
+        lbx.push_back(0.0);            // Min velocity (no reversing)
+        ubx.push_back(v_max);         // Max velocity
     }
 
     // // Bounds for delta (steering angle)
     for (int i = 0; i < n - 1; ++i) {
-        lbx.push_back(-10000); // theta lower bound
-        ubx.push_back(10000);  // theta upper bound
+        lbx.push_back(-max_steering_angle); // theta lower bound
+        ubx.push_back(max_steering_angle);  // theta upper bound
+    }
+
+    for (int i = 0; i < n - 2; ++i) {
+        lbx.push_back(0.0);  // Minimum distance
+        ubx.push_back(2.0);  // Maximum distance (or another appropriate value)
     }
 
 
     std::map<std::string, DM> arg;
-    // arg["lbx"] = lbx;
-    // arg["ubx"] = ubx;
+    arg["lbx"] = lbx;
+    arg["ubx"] = ubx;
     arg["lbg"] = lb_g;
     arg["ubg"] = ub_g;
-    arg["lbx"] = -DM::inf(); // Lower bounds
-    arg["ubx"] = DM::inf();  // Upper bounds
+    // arg["lbx"] = -DM::inf(); // Lower bounds
+    // arg["ubx"] = DM::inf();  // Upper bounds
     arg["x0"] = x0_guess;
     // Solve the problem
     std::map<string, DM> solution = solver(arg);
