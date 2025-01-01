@@ -1,13 +1,7 @@
 # Distributed under the OSI-approved BSD 3-Clause License.  See accompanying
 # file Copyright.txt or https://cmake.org/licensing for details.
 
-cmake_minimum_required(VERSION 3.27.4)
-
-# Reject any attempt to use a toolchain file. We must not use one because
-# we could be downloading it here. If the CMAKE_TOOLCHAIN_FILE environment
-# variable is set, the cache variable will have been initialized from it.
-unset(CMAKE_TOOLCHAIN_FILE CACHE)
-unset(ENV{CMAKE_TOOLCHAIN_FILE})
+cmake_minimum_required(VERSION 3.22.1)
 
 # We name the project and the target for the ExternalProject_Add() call
 # to something that will highlight to the user what we are working on if
@@ -27,16 +21,15 @@ set_property(GLOBAL PROPERTY _CMAKE_FindGit_GIT_EXECUTABLE_VERSION
 
 include(ExternalProject)
 ExternalProject_Add(matplotlib-populate
-                     "UPDATE_DISCONNECTED" "False" "GIT_REPOSITORY" "https://github.com/lava/matplotlib-cpp.git" "EXTERNALPROJECT_INTERNAL_ARGUMENT_SEPARATOR" "GIT_TAG" "f23347fca25219d1c42cbb91608b5556814bf572"
-                    SOURCE_DIR          "/home/op/tmp/HybridAStarTrailer/lib_cpp_hybrid_a_star/build/_deps/matplotlib-src"
-                    BINARY_DIR          "/home/op/tmp/HybridAStarTrailer/lib_cpp_hybrid_a_star/build/_deps/matplotlib-build"
+                     "UPDATE_DISCONNECTED" "False" "GIT_REPOSITORY" "https://github.com/lava/matplotlib-cpp.git" "GIT_TAG" "f23347fca25219d1c42cbb91608b5556814bf572"
+                    SOURCE_DIR          "/home/op/projects/trailer_hybrid_a_star/lib_cpp_hybrid_a_star/build/_deps/matplotlib-src"
+                    BINARY_DIR          "/home/op/projects/trailer_hybrid_a_star/lib_cpp_hybrid_a_star/build/_deps/matplotlib-build"
                     CONFIGURE_COMMAND   ""
                     BUILD_COMMAND       ""
                     INSTALL_COMMAND     ""
                     TEST_COMMAND        ""
                     USES_TERMINAL_DOWNLOAD  YES
                     USES_TERMINAL_UPDATE    YES
-                    USES_TERMINAL_PATCH     YES
 )
 
 

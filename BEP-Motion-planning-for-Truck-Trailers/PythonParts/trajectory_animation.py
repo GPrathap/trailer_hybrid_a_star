@@ -116,9 +116,6 @@ if __name__ == "__main__":
     v = [state[5]]
     
     k = 0
-
-
-
     while k < params["horizon"]:
         u_con = inputs[:,k]
         state = update(state, u_con, params)
@@ -138,7 +135,7 @@ if __name__ == "__main__":
         
         # Add plot of hybrid A* (reference trajectory)
         # Get the states from the json
-        with open('python-files\initialize.json', 'r') as f:
+        with open('/home/op/projects/trailer_hybrid_a_star/BEP-Motion-planning-for-Truck-Trailers/PythonParts/initialize.json', 'r') as f:
             data = json.load(f)
 
         

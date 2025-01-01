@@ -1,7 +1,7 @@
 CMakeFiles/lib_cpp_hybrid_a_star.dir/src/trailerlib.cpp.o: \
- /home/op/tmp/HybridAStarTrailer/lib_cpp_hybrid_a_star/src/trailerlib.cpp \
+ /home/op/projects/trailer_hybrid_a_star/lib_cpp_hybrid_a_star/src/trailerlib.cpp \
  /usr/include/stdc-predef.h \
- /home/op/tmp/HybridAStarTrailer/lib_cpp_hybrid_a_star/include/lib_cpp_hybrid_a_star/trailerlib.hpp \
+ /home/op/projects/trailer_hybrid_a_star/lib_cpp_hybrid_a_star/include/lib_cpp_hybrid_a_star/trailerlib.hpp \
  /usr/include/c++/11/vector /usr/include/c++/11/bits/stl_algobase.h \
  /usr/include/x86_64-linux-gnu/c++/11/bits/c++config.h \
  /usr/include/x86_64-linux-gnu/c++/11/bits/os_defines.h \
@@ -426,101 +426,7 @@ CMakeFiles/lib_cpp_hybrid_a_star.dir/src/trailerlib.cpp.o: \
  /usr/include/c++/11/pstl/utils.h \
  /usr/include/c++/11/pstl/parallel_backend_utils.h \
  /usr/include/c++/11/pstl/parallel_backend.h \
- /usr/include/c++/11/pstl/parallel_backend_tbb.h \
- /usr/include/tbb/blocked_range.h /usr/include/oneapi/tbb/blocked_range.h \
- /usr/include/oneapi/tbb/detail/_range_common.h \
- /usr/include/oneapi/tbb/detail/_config.h \
- /usr/include/oneapi/tbb/detail/_export.h \
- /usr/include/oneapi/tbb/detail/_utils.h \
- /usr/include/oneapi/tbb/detail/_assert.h \
- /usr/include/oneapi/tbb/detail/_machine.h \
- /usr/lib/gcc/x86_64-linux-gnu/11/include/immintrin.h \
- /usr/lib/gcc/x86_64-linux-gnu/11/include/x86gprintrin.h \
- /usr/lib/gcc/x86_64-linux-gnu/11/include/ia32intrin.h \
- /usr/lib/gcc/x86_64-linux-gnu/11/include/adxintrin.h \
- /usr/lib/gcc/x86_64-linux-gnu/11/include/bmiintrin.h \
- /usr/lib/gcc/x86_64-linux-gnu/11/include/bmi2intrin.h \
- /usr/lib/gcc/x86_64-linux-gnu/11/include/cetintrin.h \
- /usr/lib/gcc/x86_64-linux-gnu/11/include/cldemoteintrin.h \
- /usr/lib/gcc/x86_64-linux-gnu/11/include/clflushoptintrin.h \
- /usr/lib/gcc/x86_64-linux-gnu/11/include/clwbintrin.h \
- /usr/lib/gcc/x86_64-linux-gnu/11/include/clzerointrin.h \
- /usr/lib/gcc/x86_64-linux-gnu/11/include/enqcmdintrin.h \
- /usr/lib/gcc/x86_64-linux-gnu/11/include/fxsrintrin.h \
- /usr/lib/gcc/x86_64-linux-gnu/11/include/lzcntintrin.h \
- /usr/lib/gcc/x86_64-linux-gnu/11/include/lwpintrin.h \
- /usr/lib/gcc/x86_64-linux-gnu/11/include/movdirintrin.h \
- /usr/lib/gcc/x86_64-linux-gnu/11/include/mwaitintrin.h \
- /usr/lib/gcc/x86_64-linux-gnu/11/include/mwaitxintrin.h \
- /usr/lib/gcc/x86_64-linux-gnu/11/include/pconfigintrin.h \
- /usr/lib/gcc/x86_64-linux-gnu/11/include/popcntintrin.h \
- /usr/lib/gcc/x86_64-linux-gnu/11/include/pkuintrin.h \
- /usr/lib/gcc/x86_64-linux-gnu/11/include/rdseedintrin.h \
- /usr/lib/gcc/x86_64-linux-gnu/11/include/rtmintrin.h \
- /usr/lib/gcc/x86_64-linux-gnu/11/include/serializeintrin.h \
- /usr/lib/gcc/x86_64-linux-gnu/11/include/sgxintrin.h \
- /usr/lib/gcc/x86_64-linux-gnu/11/include/tbmintrin.h \
- /usr/lib/gcc/x86_64-linux-gnu/11/include/tsxldtrkintrin.h \
- /usr/lib/gcc/x86_64-linux-gnu/11/include/uintrintrin.h \
- /usr/lib/gcc/x86_64-linux-gnu/11/include/waitpkgintrin.h \
- /usr/lib/gcc/x86_64-linux-gnu/11/include/wbnoinvdintrin.h \
- /usr/lib/gcc/x86_64-linux-gnu/11/include/xsaveintrin.h \
- /usr/lib/gcc/x86_64-linux-gnu/11/include/xsavecintrin.h \
- /usr/lib/gcc/x86_64-linux-gnu/11/include/xsaveoptintrin.h \
- /usr/lib/gcc/x86_64-linux-gnu/11/include/xsavesintrin.h \
- /usr/lib/gcc/x86_64-linux-gnu/11/include/xtestintrin.h \
- /usr/lib/gcc/x86_64-linux-gnu/11/include/hresetintrin.h \
- /usr/lib/gcc/x86_64-linux-gnu/11/include/pmmintrin.h \
- /usr/lib/gcc/x86_64-linux-gnu/11/include/tmmintrin.h \
- /usr/lib/gcc/x86_64-linux-gnu/11/include/smmintrin.h \
- /usr/lib/gcc/x86_64-linux-gnu/11/include/wmmintrin.h \
- /usr/lib/gcc/x86_64-linux-gnu/11/include/avxintrin.h \
- /usr/lib/gcc/x86_64-linux-gnu/11/include/avxvnniintrin.h \
- /usr/lib/gcc/x86_64-linux-gnu/11/include/avx2intrin.h \
- /usr/lib/gcc/x86_64-linux-gnu/11/include/avx512fintrin.h \
- /usr/lib/gcc/x86_64-linux-gnu/11/include/avx512erintrin.h \
- /usr/lib/gcc/x86_64-linux-gnu/11/include/avx512pfintrin.h \
- /usr/lib/gcc/x86_64-linux-gnu/11/include/avx512cdintrin.h \
- /usr/lib/gcc/x86_64-linux-gnu/11/include/avx512vlintrin.h \
- /usr/lib/gcc/x86_64-linux-gnu/11/include/avx512bwintrin.h \
- /usr/lib/gcc/x86_64-linux-gnu/11/include/avx512dqintrin.h \
- /usr/lib/gcc/x86_64-linux-gnu/11/include/avx512vlbwintrin.h \
- /usr/lib/gcc/x86_64-linux-gnu/11/include/avx512vldqintrin.h \
- /usr/lib/gcc/x86_64-linux-gnu/11/include/avx512ifmaintrin.h \
- /usr/lib/gcc/x86_64-linux-gnu/11/include/avx512ifmavlintrin.h \
- /usr/lib/gcc/x86_64-linux-gnu/11/include/avx512vbmiintrin.h \
- /usr/lib/gcc/x86_64-linux-gnu/11/include/avx512vbmivlintrin.h \
- /usr/lib/gcc/x86_64-linux-gnu/11/include/avx5124fmapsintrin.h \
- /usr/lib/gcc/x86_64-linux-gnu/11/include/avx5124vnniwintrin.h \
- /usr/lib/gcc/x86_64-linux-gnu/11/include/avx512vpopcntdqintrin.h \
- /usr/lib/gcc/x86_64-linux-gnu/11/include/avx512vbmi2intrin.h \
- /usr/lib/gcc/x86_64-linux-gnu/11/include/avx512vbmi2vlintrin.h \
- /usr/lib/gcc/x86_64-linux-gnu/11/include/avx512vnniintrin.h \
- /usr/lib/gcc/x86_64-linux-gnu/11/include/avx512vnnivlintrin.h \
- /usr/lib/gcc/x86_64-linux-gnu/11/include/avx512vpopcntdqvlintrin.h \
- /usr/lib/gcc/x86_64-linux-gnu/11/include/avx512bitalgintrin.h \
- /usr/lib/gcc/x86_64-linux-gnu/11/include/avx512vp2intersectintrin.h \
- /usr/lib/gcc/x86_64-linux-gnu/11/include/avx512vp2intersectvlintrin.h \
- /usr/lib/gcc/x86_64-linux-gnu/11/include/shaintrin.h \
- /usr/lib/gcc/x86_64-linux-gnu/11/include/fmaintrin.h \
- /usr/lib/gcc/x86_64-linux-gnu/11/include/f16cintrin.h \
- /usr/lib/gcc/x86_64-linux-gnu/11/include/gfniintrin.h \
- /usr/lib/gcc/x86_64-linux-gnu/11/include/vaesintrin.h \
- /usr/lib/gcc/x86_64-linux-gnu/11/include/vpclmulqdqintrin.h \
- /usr/lib/gcc/x86_64-linux-gnu/11/include/avx512bf16vlintrin.h \
- /usr/lib/gcc/x86_64-linux-gnu/11/include/avx512bf16intrin.h \
- /usr/lib/gcc/x86_64-linux-gnu/11/include/amxtileintrin.h \
- /usr/lib/gcc/x86_64-linux-gnu/11/include/amxint8intrin.h \
- /usr/lib/gcc/x86_64-linux-gnu/11/include/amxbf16intrin.h \
- /usr/lib/gcc/x86_64-linux-gnu/11/include/prfchwintrin.h \
- /usr/lib/gcc/x86_64-linux-gnu/11/include/keylockerintrin.h \
- /usr/include/oneapi/tbb/detail/_namespace_injection.h \
- /usr/include/oneapi/tbb/version.h \
- /usr/include/oneapi/tbb/detail/_config.h /usr/include/tbb/parallel_for.h \
- /usr/include/oneapi/tbb/parallel_for.h \
- /usr/include/oneapi/tbb/detail/_exception.h \
- /usr/include/oneapi/tbb/detail/_task.h \
- /usr/include/oneapi/tbb/detail/_template_helpers.h \
+ /usr/include/c++/11/pstl/parallel_backend_serial.h \
  /usr/include/c++/11/memory \
  /usr/include/c++/11/bits/stl_raw_storage_iter.h \
  /usr/include/c++/11/bits/align.h /usr/include/c++/11/bits/shared_ptr.h \
@@ -530,34 +436,7 @@ CMakeFiles/lib_cpp_hybrid_a_star.dir/src/trailerlib.cpp.o: \
  /usr/include/c++/11/bits/shared_ptr_atomic.h \
  /usr/include/c++/11/backward/auto_ptr.h \
  /usr/include/c++/11/pstl/glue_memory_defs.h \
- /usr/include/oneapi/tbb/detail/_small_object_pool.h \
- /usr/include/oneapi/tbb/profiling.h \
- /usr/include/oneapi/tbb/detail/_string_resource.h \
- /usr/include/c++/11/mutex /usr/include/c++/11/bits/std_mutex.h \
- /usr/include/c++/11/bits/unique_lock.h \
- /usr/include/oneapi/tbb/detail/_small_object_pool.h \
- /usr/include/oneapi/tbb/profiling.h \
- /usr/include/oneapi/tbb/partitioner.h \
- /usr/include/oneapi/tbb/detail/_aligned_space.h \
- /usr/include/oneapi/tbb/detail/_utils.h \
- /usr/include/oneapi/tbb/detail/_template_helpers.h \
- /usr/include/oneapi/tbb/cache_aligned_allocator.h \
- /usr/include/c++/11/memory_resource /usr/include/c++/11/shared_mutex \
- /usr/include/c++/11/bits/uses_allocator_args.h \
- /usr/include/oneapi/tbb/task_group.h \
- /usr/include/oneapi/tbb/detail/_assert.h \
- /usr/include/oneapi/tbb/detail/_intrusive_list_node.h \
- /usr/include/oneapi/tbb/task_arena.h /usr/include/oneapi/tbb/info.h \
- /usr/include/oneapi/tbb/blocked_range.h \
- /usr/include/tbb/parallel_reduce.h \
- /usr/include/oneapi/tbb/parallel_reduce.h \
- /usr/include/tbb/parallel_scan.h /usr/include/oneapi/tbb/parallel_scan.h \
- /usr/include/tbb/parallel_invoke.h \
- /usr/include/oneapi/tbb/parallel_invoke.h /usr/include/tbb/task_arena.h \
- /usr/include/oneapi/tbb/task_arena.h /usr/include/tbb/tbb_allocator.h \
- /usr/include/oneapi/tbb/tbb_allocator.h \
- /usr/include/oneapi/tbb/detail/_utils.h /usr/include/tbb/task.h \
- /usr/include/oneapi/tbb/task.h /usr/include/c++/11/pstl/parallel_impl.h \
+ /usr/include/c++/11/pstl/parallel_impl.h \
  /usr/include/c++/11/pstl/numeric_impl.h \
  /usr/include/c++/11/pstl/pstl_config.h \
  /usr/include/c++/11/pstl/algorithm_fwd.h \
@@ -565,17 +444,20 @@ CMakeFiles/lib_cpp_hybrid_a_star.dir/src/trailerlib.cpp.o: \
  /usr/include/c++/11/pstl/numeric_fwd.h \
  /usr/include/c++/11/pstl/glue_numeric_impl.h \
  /usr/include/c++/11/pstl/glue_memory_impl.h \
- /home/op/tmp/HybridAStarTrailer/lib_cpp_hybrid_a_star/include/lib_cpp_hybrid_a_star/math_utility.hpp \
- /home/op/tmp/HybridAStarTrailer/lib_cpp_hybrid_a_star/include/nanoflann.hpp \
- /usr/include/c++/11/future /usr/include/c++/11/condition_variable \
+ /home/op/projects/trailer_hybrid_a_star/lib_cpp_hybrid_a_star/include/lib_cpp_hybrid_a_star/math_utility.hpp \
+ /home/op/projects/trailer_hybrid_a_star/lib_cpp_hybrid_a_star/include/nanoflann.hpp \
+ /usr/include/c++/11/future /usr/include/c++/11/mutex \
+ /usr/include/c++/11/bits/std_mutex.h \
+ /usr/include/c++/11/bits/unique_lock.h \
+ /usr/include/c++/11/condition_variable \
  /usr/include/c++/11/bits/atomic_futex.h \
  /usr/include/c++/11/unordered_set \
  /usr/include/c++/11/bits/unordered_set.h /usr/include/c++/11/queue \
  /usr/include/c++/11/deque /usr/include/c++/11/bits/stl_deque.h \
  /usr/include/c++/11/bits/deque.tcc /usr/include/c++/11/bits/stl_queue.h \
- /home/op/tmp/HybridAStarTrailer/lib_cpp_hybrid_a_star/include/lib_cpp_hybrid_a_star/grid_a_star.hpp \
- /home/op/tmp/HybridAStarTrailer/lib_cpp_hybrid_a_star/include/lib_cpp_hybrid_a_star/rs_paths.hpp \
- /home/op/tmp/HybridAStarTrailer/lib_cpp_hybrid_a_star/build/_deps/matplotlib-src/matplotlibcpp.h \
+ /home/op/projects/trailer_hybrid_a_star/lib_cpp_hybrid_a_star/include/lib_cpp_hybrid_a_star/grid_a_star.hpp \
+ /home/op/projects/trailer_hybrid_a_star/lib_cpp_hybrid_a_star/include/lib_cpp_hybrid_a_star/rs_paths.hpp \
+ /home/op/projects/trailer_hybrid_a_star/lib_cpp_hybrid_a_star/build/_deps/matplotlib-src/matplotlibcpp.h \
  /usr/include/c++/11/map /usr/include/c++/11/bits/stl_tree.h \
  /usr/include/c++/11/bits/stl_map.h \
  /usr/include/c++/11/bits/stl_multimap.h /usr/include/python3.10/Python.h \
@@ -685,38 +567,17 @@ CMakeFiles/lib_cpp_hybrid_a_star.dir/src/trailerlib.cpp.o: \
  /usr/include/python3.10/cpython/fileutils.h \
  /usr/include/python3.10/cpython/pyfpe.h \
  /usr/include/python3.10/tracemalloc.h \
- /home/op/.local/lib/python3.10/site-packages/numpy/core/include/numpy/arrayobject.h \
- /home/op/.local/lib/python3.10/site-packages/numpy/core/include/numpy/ndarrayobject.h \
- /home/op/.local/lib/python3.10/site-packages/numpy/core/include/numpy/ndarraytypes.h \
- /home/op/.local/lib/python3.10/site-packages/numpy/core/include/numpy/npy_common.h \
- /home/op/.local/lib/python3.10/site-packages/numpy/core/include/numpy/numpyconfig.h \
- /home/op/.local/lib/python3.10/site-packages/numpy/core/include/numpy/_numpyconfig.h \
- /home/op/.local/lib/python3.10/site-packages/numpy/core/include/numpy/npy_endian.h \
- /home/op/.local/lib/python3.10/site-packages/numpy/core/include/numpy/npy_cpu.h \
- /home/op/.local/lib/python3.10/site-packages/numpy/core/include/numpy/utils.h \
- /home/op/.local/lib/python3.10/site-packages/numpy/core/include/numpy/_neighborhood_iterator_imp.h \
- /home/op/.local/lib/python3.10/site-packages/numpy/core/include/numpy/__multiarray_api.h \
- /home/op/.local/lib/python3.10/site-packages/numpy/core/include/numpy/npy_interrupt.h \
- /usr/include/setjmp.h /usr/include/x86_64-linux-gnu/bits/setjmp2.h \
- /usr/include/signal.h \
- /usr/include/x86_64-linux-gnu/bits/signum-generic.h \
- /usr/include/x86_64-linux-gnu/bits/signum-arch.h \
- /usr/include/x86_64-linux-gnu/bits/types/sig_atomic_t.h \
- /usr/include/x86_64-linux-gnu/bits/types/siginfo_t.h \
- /usr/include/x86_64-linux-gnu/bits/types/__sigval_t.h \
- /usr/include/x86_64-linux-gnu/bits/siginfo-arch.h \
- /usr/include/x86_64-linux-gnu/bits/siginfo-consts.h \
- /usr/include/x86_64-linux-gnu/bits/siginfo-consts-arch.h \
- /usr/include/x86_64-linux-gnu/bits/types/sigval_t.h \
- /usr/include/x86_64-linux-gnu/bits/types/sigevent_t.h \
- /usr/include/x86_64-linux-gnu/bits/sigevent-consts.h \
- /usr/include/x86_64-linux-gnu/bits/sigaction.h \
- /usr/include/x86_64-linux-gnu/bits/sigcontext.h \
- /usr/include/x86_64-linux-gnu/bits/types/stack_t.h \
- /usr/include/x86_64-linux-gnu/sys/ucontext.h \
- /usr/include/x86_64-linux-gnu/bits/sigstack.h \
- /usr/include/x86_64-linux-gnu/bits/sigstksz.h \
- /usr/include/x86_64-linux-gnu/bits/ss_flags.h \
- /usr/include/x86_64-linux-gnu/bits/types/struct_sigstack.h \
- /usr/include/x86_64-linux-gnu/bits/sigthread.h \
- /usr/include/x86_64-linux-gnu/bits/signal_ext.h
+ /usr/local/lib/python3.10/dist-packages/numpy/_core/include/numpy/arrayobject.h \
+ /usr/local/lib/python3.10/dist-packages/numpy/_core/include/numpy/ndarrayobject.h \
+ /usr/local/lib/python3.10/dist-packages/numpy/_core/include/numpy/ndarraytypes.h \
+ /usr/local/lib/python3.10/dist-packages/numpy/_core/include/numpy/npy_common.h \
+ /usr/local/lib/python3.10/dist-packages/numpy/_core/include/numpy/numpyconfig.h \
+ /usr/local/lib/python3.10/dist-packages/numpy/_core/include/numpy/_numpyconfig.h \
+ /usr/local/lib/python3.10/dist-packages/numpy/_core/include/numpy/npy_endian.h \
+ /usr/local/lib/python3.10/dist-packages/numpy/_core/include/numpy/npy_cpu.h \
+ /usr/local/lib/python3.10/dist-packages/numpy/_core/include/numpy/utils.h \
+ /usr/local/lib/python3.10/dist-packages/numpy/_core/include/numpy/_neighborhood_iterator_imp.h \
+ /usr/local/lib/python3.10/dist-packages/numpy/_core/include/numpy/dtype_api.h \
+ /usr/local/lib/python3.10/dist-packages/numpy/_core/include/numpy/__multiarray_api.h \
+ /usr/local/lib/python3.10/dist-packages/numpy/_core/include/numpy/_public_dtype_api_table.h \
+ /usr/local/lib/python3.10/dist-packages/numpy/_core/include/numpy/npy_2_compat.h

@@ -1,4 +1,4 @@
-# Install script for directory: /home/op/tmp/HybridAStarTrailer/lib_cpp_hybrid_a_star/build/_deps/matplotlib-subbuild
+# Install script for directory: /home/op/projects/trailer_hybrid_a_star/lib_cpp_hybrid_a_star/build/_deps/matplotlib-subbuild
 
 # Set the install prefix
 if(NOT DEFINED CMAKE_INSTALL_PREFIX)
@@ -45,5 +45,5 @@ endif()
 
 string(REPLACE ";" "\n" CMAKE_INSTALL_MANIFEST_CONTENT
        "${CMAKE_INSTALL_MANIFEST_FILES}")
-file(WRITE "/home/op/tmp/HybridAStarTrailer/lib_cpp_hybrid_a_star/build/_deps/matplotlib-subbuild/${CMAKE_INSTALL_MANIFEST}"
+file(WRITE "/home/op/projects/trailer_hybrid_a_star/lib_cpp_hybrid_a_star/build/_deps/matplotlib-subbuild/${CMAKE_INSTALL_MANIFEST}"
      "${CMAKE_INSTALL_MANIFEST_CONTENT}")

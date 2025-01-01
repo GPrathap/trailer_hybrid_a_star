@@ -3,7 +3,7 @@ import numpy as np
 
 def get_initial_goal_states():
     # Load data from the JSON file
-    with open('/home/op/tmp/HybridAStarTrailer/BEP-Motion-planning-for-Truck-Trailers/PythonParts/initialize.json', 'r') as f:
+    with open('/home/op/projects/trailer_hybrid_a_star/BEP-Motion-planning-for-Truck-Trailers/PythonParts/initialize.json', 'r') as f:
         data = json.load(f)
 
     # Now we can access the data from the file. For example:
