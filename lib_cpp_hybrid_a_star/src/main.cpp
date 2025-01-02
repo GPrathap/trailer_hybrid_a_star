@@ -308,12 +308,14 @@ using KDTree = nanoflann::KDTreeSingleIndexAdaptor<
 
 
 // Parameters
-const double IQR_MULTIPLIER = 4.0;
-const double VELOCITY_THRESHOLD = 50.0; // km/h
-const double Z_SCORE_THRESHOLD = 8.2;
-const double GROUND_HEIGHT = 8.2; // Initial ground height
-const double THRESHOLD = 0.3;     // Altitude threshold
-const double ALPHA = 0.001;       // Learning rate for dynamic ground height
+constexpr double IQR_MULTIPLIER = 8.2;
+constexpr double VELOCITY_THRESHOLD = 50.0; // km/h
+constexpr double Z_SCORE_THRESHOLD = 8.2;
+constexpr double GROUND_HEIGHT = 8.2; // Initial ground height
+constexpr double THRESHOLD = 0.3;     // Altitude threshold
+constexpr double ALPHA = 0.001;       // Learning rate for dynamic ground height
+constexpr size_t MAX_HISTORY_SIZE = 500;
+
 
 // Helper to compute 3D distance
 double compute3DDistance(double lat1, double lon1, double alt1, double lat2, double lon2, double alt2) {
@@ -409,7 +411,7 @@ public:
 
             // Statistical computations
             double meanAltitude = 0, stdAltitude = 0, Q1 = 0, Q3 = 0;
-            if (!historicalData.empty()) {
+            if (historicalData.size()>1) {
                 VectorXd data(historicalData.size());
                 for (size_t i = 0; i < historicalData.size(); ++i)
                     data(i) = historicalData[i];
@@ -423,7 +425,6 @@ public:
                 Q3 = data(3 * data.size() / 4);
 
                 // std::cout<< " data: " << data.transpose() << std::endl; 
-                // std::cout<< "q1 "<< Q1 << " q2: " << Q3 << " meanAltitude " << meanAltitude << " stdAltitude: " << stdAltitude << std::endl;
 
                 double IQR = Q3 - Q1;
                 double lowerBound = Q1 - IQR_MULTIPLIER * IQR;
@@ -435,6 +436,7 @@ public:
                     outliers.push_back(index);
                     iqrOutlier = true;
                 }
+                // std::cout<< "q1 "<< Q1 << " q2: " << Q3 << " meanAltitude " << meanAltitude << " stdAltitude: " << stdAltitude << " iqrOutlier " << iqrOutlier << std::endl;
                 if (stdAltitude > 0) {
                     double zScore = (alt - meanAltitude) / stdAltitude;
                     if (fabs(zScore) > Z_SCORE_THRESHOLD) {
@@ -458,7 +460,7 @@ public:
                     outlier_periods.push_back(section);
                     in_outlier = false;
                 }
-                groundHeightOutlier = true;
+                groundHeightOutlier = false;
                 dynamicGroundHeight = (1 - ALPHA) * dynamicGroundHeight + ALPHA * alt;
             }
             // Determine final outlier
@@ -470,9 +472,13 @@ public:
         // Update state
         previousTimeIndex = timeIndex;
         previousLatLonAlt = {lat, lon, alt};
-        if (!iqrOutlier || !zScoreOutlier) {
+        if (groundHeightOutlier==false) {
             historicalData.push_back(alt);
         }
+        if (historicalData.size() >= MAX_HISTORY_SIZE) {
+            historicalData.pop_front();  // Remove oldest entry
+        }
+
     }
 };
 
@@ -634,6 +640,7 @@ int main(int argc, char** argv) {
     vector<double> latitudes;
     vector<double> altitudes;
     for (size_t i = 0; i < data.size(); ++i) {
+    // for (size_t i = 0; i < 20; ++i) {
         altitudes.push_back(data[i][0]);
         latitudes.push_back(data[i][1]);
         longitudes.push_back(data[i][2]);
