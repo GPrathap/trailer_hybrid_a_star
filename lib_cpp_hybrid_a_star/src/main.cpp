@@ -12,6 +12,8 @@
 #include "lib_cpp_hybrid_a_star/trailer_hybrid_a_star.hpp"
 #include "matplotlibcpp.h"
 
+#include "lib_cpp_hybrid_a_star/outlier_detector.hpp"
+
 namespace plt = matplotlibcpp;
 
 namespace plt = matplotlibcpp;
@@ -308,41 +310,26 @@ using KDTree = nanoflann::KDTreeSingleIndexAdaptor<
 
 
 // Parameters
-constexpr double IQR_MULTIPLIER = 8.2;
-constexpr double VELOCITY_THRESHOLD = 50.0; // km/h
-constexpr double Z_SCORE_THRESHOLD = 8.2;
-constexpr double GROUND_HEIGHT = 8.2; // Initial ground height
+constexpr double IQR_MULTIPLIER =  8.0;
+constexpr double Z_SCORE_THRESHOLD =  8.0;
+constexpr double GROUND_HEIGHT =  8.0; // Initial ground height
 constexpr double THRESHOLD = 0.3;     // Altitude threshold
 constexpr double ALPHA = 0.001;       // Learning rate for dynamic ground height
+constexpr double VELOCITY_THRESHOLD = 100.0; // km/h
 constexpr size_t MAX_HISTORY_SIZE = 500;
+constexpr double MAX_ALT_THRESHOLD = 1.5; //if this exceed this value, it is consider as outlier without any checking 
+constexpr double MAX_ALT_THRESHOLD_FOR_Z_SCORE = 1.2; //if this exceed this value, it is consider as soft-outlier that only for reduce distarbanuce for Z-score estimaiton
 
 
-// Helper to compute 3D distance
-double compute3DDistance(double lat1, double lon1, double alt1, double lat2, double lon2, double alt2) {
-    double R = 6371.0; // Earth radius in kilometers
-    double dLat = (lat2 - lat1) * M_PI / 180.0;
-    double dLon = (lon2 - lon1) * M_PI / 180.0;
-
-    double a = sin(dLat / 2) * sin(dLat / 2) +
-               cos(lat1 * M_PI / 180.0) * cos(lat2 * M_PI / 180.0) *
-               sin(dLon / 2) * sin(dLon / 2);
-    double c = 2 * atan2(sqrt(a), sqrt(1 - a));
-    double horizontalDistance = R * c;
-
-    double verticalDistance = fabs(alt2 - alt1) / 1000.0; // Convert meters to kilometers
-    return sqrt(horizontalDistance * horizontalDistance + verticalDistance * verticalDistance);
-}
 
 // Function to load data from a CSV file
 vector<vector<double>> loadCSV(const string& filename) {
     vector<vector<double>> data;
     ifstream file(filename);
-
     if (!file.is_open()) {
         cerr << "Error: Could not open file " << filename << endl;
         return data;
     }
-
     string line;
     int rowNumber = 0;
     while (getline(file, line)) {
@@ -388,6 +375,22 @@ public:
     int start_index{0};
     int end_index{0};
 
+    // Helper to compute 3D distance
+    double compute3DDistance(double lat1, double lon1, double alt1, double lat2, double lon2, double alt2) {
+        double R = 6371.0; // Earth radius in kilometers
+        double dLat = (lat2 - lat1) * M_PI / 180.0;
+        double dLon = (lon2 - lon1) * M_PI / 180.0;
+
+        double a = sin(dLat / 2) * sin(dLat / 2) +
+                cos(lat1 * M_PI / 180.0) * cos(lat2 * M_PI / 180.0) *
+                sin(dLon / 2) * sin(dLon / 2);
+        double c = 2 * atan2(sqrt(a), sqrt(1 - a));
+        double horizontalDistance = R * c;
+
+        double verticalDistance = fabs(alt2 - alt1) / 1000.0; // Convert meters to kilometers
+        return sqrt(horizontalDistance * horizontalDistance + verticalDistance * verticalDistance);
+    }
+
     void processRow(int index, const vector<double>& row) {
         double timeIndex = row[3];
         double lat = row[1];
@@ -430,8 +433,6 @@ public:
                 double lowerBound = Q1 - IQR_MULTIPLIER * IQR;
                 double upperBound = Q3 + IQR_MULTIPLIER * IQR;
 
-
-
                 if (alt < lowerBound || alt > upperBound) {
                     outliers.push_back(index);
                     iqrOutlier = true;
@@ -463,8 +464,12 @@ public:
                 groundHeightOutlier = false;
                 dynamicGroundHeight = (1 - ALPHA) * dynamicGroundHeight + ALPHA * alt;
             }
-            // Determine final outlier
-            if ((zScoreOutlier + iqrOutlier + groundHeightOutlier + velocityOutlier) >= 2) {
+
+            bool alt_outlier_extrem = (abs(GROUND_HEIGHT - alt) > MAX_ALT_THRESHOLD);
+            bool can_be_consider_as_outlier = (zScoreOutlier + iqrOutlier + groundHeightOutlier + velocityOutlier) >= 2;
+            if(alt_outlier_extrem){
+                finalOutliers.push_back(index);
+            }else if(can_be_consider_as_outlier){
                 finalOutliers.push_back(index);
             }
         }
@@ -472,9 +477,12 @@ public:
         // Update state
         previousTimeIndex = timeIndex;
         previousLatLonAlt = {lat, lon, alt};
-        if (groundHeightOutlier==false) {
+
+        bool soft_outlier = abs(GROUND_HEIGHT - alt) < MAX_ALT_THRESHOLD_FOR_Z_SCORE;
+        if (soft_outlier) {
             historicalData.push_back(alt);
         }
+
         if (historicalData.size() >= MAX_HISTORY_SIZE) {
             historicalData.pop_front();  // Remove oldest entry
         }
@@ -496,7 +504,7 @@ void plotOutliers(
 
     // Convert indices to outlier coordinates
     std::vector<double> outlierLongitudes, outlierLatitudes, velocityOutlierLongitudes, velocityOutlierLatitudes, finalOutlierLongitudes, finalOutlierLatitudes;
-    for (int idx : outlierIndices) {
+    for (int idx : altitudeOutliers) {
         outlierLongitudes.push_back(longitudes[idx]);
         outlierLatitudes.push_back(latitudes[idx]);
     }
@@ -634,7 +642,21 @@ int main(int argc, char** argv) {
         return 1;
     }
 
-    OutlierDetector detector;
+    // Define parameters for the outlier detector.
+    outliear_detector::OutlierDetectionParams params;
+    params.iqr_multiplier = 9.0;
+    params.z_score_threshold = 9.0;
+    params.ground_height = 9.0;
+    params.altitude_threshold = 0.3;
+    params.alpha = 0.001;
+    params.velocity_threshold = 100.0;  // km/h
+    params.max_history_size = 500;
+    params.max_altitude_threshold = 1.5;
+    params.max_altitude_threshold_for_z_score = 1.2;
+
+    // Instantiate the outlier detector with the parameters.
+    outliear_detector::OutlierDetector detector;
+    detector.initParam(params);
 
     vector<double> longitudes;
     vector<double> latitudes;
@@ -644,22 +666,22 @@ int main(int argc, char** argv) {
         altitudes.push_back(data[i][0]);
         latitudes.push_back(data[i][1]);
         longitudes.push_back(data[i][2]);
-        detector.processRow(i, data[i]);
+        detector.ProcessRow(i, data[i]);
     }
 
-
     // Loop through the start and end indices of outlier periods
-    for (const auto& period : detector.outlier_periods) {
+    for (const auto& period : detector.outlier_periods_) {
         size_t start = period[0];
         size_t end = period[1];
         for (size_t i = start; i <= end; ++i) {
-            detector.outlier_indices.push_back(i);
+            detector.outlier_indices_.push_back(i);
         }
     }
 
-    detector.velocities.push_back(0.0);
+    detector.velocities_.push_back(0.0);
 
-    plotOutliers(longitudes, latitudes, detector.outlier_indices, detector.outlierIndices3D, detector.finalOutliers, altitudes, detector.velocities, GROUND_HEIGHT, detector.outliers);
+    plotOutliers(longitudes, latitudes, detector.outlier_indices_, detector.outlier_indices_3d_, detector.final_outliers_
+            , altitudes, detector.velocities_, params.ground_height, detector.outliers_);
 
     // plotResults(altitudes, detector.finalOutliers, detector.velocities);
 

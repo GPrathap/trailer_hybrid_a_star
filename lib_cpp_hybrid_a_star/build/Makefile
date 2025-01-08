@@ -190,6 +190,30 @@ src/main.cpp.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/hybrid_a_star.dir/build.make CMakeFiles/hybrid_a_star.dir/src/main.cpp.s
 .PHONY : src/main.cpp.s
 
+src/outlier_detector.o: src/outlier_detector.cpp.o
+.PHONY : src/outlier_detector.o
+
+# target to build an object file
+src/outlier_detector.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/lib_cpp_hybrid_a_star.dir/build.make CMakeFiles/lib_cpp_hybrid_a_star.dir/src/outlier_detector.cpp.o
+.PHONY : src/outlier_detector.cpp.o
+
+src/outlier_detector.i: src/outlier_detector.cpp.i
+.PHONY : src/outlier_detector.i
+
+# target to preprocess a source file
+src/outlier_detector.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/lib_cpp_hybrid_a_star.dir/build.make CMakeFiles/lib_cpp_hybrid_a_star.dir/src/outlier_detector.cpp.i
+.PHONY : src/outlier_detector.cpp.i
+
+src/outlier_detector.s: src/outlier_detector.cpp.s
+.PHONY : src/outlier_detector.s
+
+# target to generate assembly for a file
+src/outlier_detector.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/lib_cpp_hybrid_a_star.dir/build.make CMakeFiles/lib_cpp_hybrid_a_star.dir/src/outlier_detector.cpp.s
+.PHONY : src/outlier_detector.cpp.s
+
 src/rs_paths.o: src/rs_paths.cpp.o
 .PHONY : src/rs_paths.o
 
@@ -278,6 +302,9 @@ help:
 	@echo "... src/main.o"
 	@echo "... src/main.i"
 	@echo "... src/main.s"
+	@echo "... src/outlier_detector.o"
+	@echo "... src/outlier_detector.i"
+	@echo "... src/outlier_detector.s"
 	@echo "... src/rs_paths.o"
 	@echo "... src/rs_paths.i"
 	@echo "... src/rs_paths.s"

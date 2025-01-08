@@ -1,6 +1,8 @@
 file(REMOVE_RECURSE
   "CMakeFiles/lib_cpp_hybrid_a_star.dir/src/grid_a_star.cpp.o"
   "CMakeFiles/lib_cpp_hybrid_a_star.dir/src/grid_a_star.cpp.o.d"
+  "CMakeFiles/lib_cpp_hybrid_a_star.dir/src/outlier_detector.cpp.o"
+  "CMakeFiles/lib_cpp_hybrid_a_star.dir/src/outlier_detector.cpp.o.d"
   "CMakeFiles/lib_cpp_hybrid_a_star.dir/src/rs_paths.cpp.o"
   "CMakeFiles/lib_cpp_hybrid_a_star.dir/src/rs_paths.cpp.o.d"
   "CMakeFiles/lib_cpp_hybrid_a_star.dir/src/trailer_hybrid_a_star.cpp.o"
